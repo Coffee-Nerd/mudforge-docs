@@ -1,22 +1,434 @@
 # Variables & Persistence
 
-Functions for storing and retrieving data.
+Functions for storing and retrieving data within plugins and across sessions.
 
-> This page will be populated with verified API documentation from the source code.
+All functions documented here have been verified against the source code.
+
+---
 
 ## Plugin Variables
 
-- `setVariable()` - Set a plugin variable
-- `getVariable()` - Get a plugin variable
-- `deleteVariable()` - Delete a variable
-- `getAllVariables()` - Get all variables
+Variables are plugin-scoped storage that persists during the session. They're useful for tracking game state, storing configuration, and sharing data between triggers.
+
+### setVariable
+
+Store a value with a name.
+
+**API:**
+```lua
+setVariable(name, value)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| name | string | Yes | Variable name |
+| value | any | Yes | Value to store |
+
+**Example:**
+```lua
+-- Store simple values
+setVariable("hp", 100)
+setVariable("maxhp", 150)
+setVariable("player_name", "Hero")
+
+-- Store booleans
+setVariable("in_combat", true)
+setVariable("is_resting", false)
+
+-- Store tables (serialized)
+setVariable("inventory", { sword = 1, potion = 5 })
+```
+
+**Source:** `types/plugin.ts:155`, `core/next-gen-plugin-runtime.ts:1499`
+
+---
+
+### getVariable
+
+Retrieve a stored value by name.
+
+**API:**
+```lua
+local value = getVariable(name)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| name | string | Yes | Variable name to retrieve |
+
+**Returns:** The stored value, or `nil` if not found
+
+**Example:**
+```lua
+local hp = getVariable("hp")
+local name = getVariable("player_name")
+
+if getVariable("in_combat") then
+  echo("Currently in combat!")
+end
+
+-- Check for existence
+local gold = getVariable("gold")
+if gold then
+  echo("You have " .. gold .. " gold")
+else
+  echo("Gold not tracked yet")
+end
+```
+
+**Source:** `types/plugin.ts:156`, `core/next-gen-plugin-runtime.ts:1500`
+
+---
+
+### deleteVariable
+
+Remove a variable from storage.
+
+**API:**
+```lua
+local success = deleteVariable(name)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| name | string | Yes | Variable name to delete |
+
+**Returns:** `boolean` - Whether the variable was deleted
+
+**Example:**
+```lua
+-- Clean up temporary variables
+deleteVariable("temp_target")
+deleteVariable("last_attack_time")
+```
+
+**Source:** `types/plugin.ts:275`
+
+---
+
+### getAllVariables
+
+Get all variables as a table.
+
+**API:**
+```lua
+local vars = getAllVariables()
+```
+
+**Returns:** `table` - All variables as key-value pairs
+
+**Example:**
+```lua
+local vars = getAllVariables()
+
+-- List all variables
+for name, value in pairs(vars) do
+  print(name .. " = " .. tostring(value))
+end
+
+-- Check total count
+local count = 0
+for _ in pairs(vars) do count = count + 1 end
+echo("Total variables: " .. count)
+```
+
+**Source:** `types/plugin.ts:277`
+
+---
 
 ## MUSHclient Compatibility
 
-- `SetVariable()` - PascalCase alias
-- `GetVariable()` - PascalCase alias
+PascalCase aliases for MUSHclient script compatibility.
+
+### SetVariable
+
+Alias for `setVariable` (MUSHclient compatibility).
+
+**API:**
+```lua
+SetVariable(name, value)
+```
+
+When used within trigger/alias scripts, automatically converts value to string (matching MUSHclient behavior).
+
+**Example:**
+```lua
+-- In a trigger script
+SetVariable("last_hp", "%1")  -- Capture from trigger match
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:2874-2876`
+
+---
+
+### GetVariable
+
+Alias for `getVariable` (MUSHclient compatibility).
+
+**API:**
+```lua
+local value = GetVariable(name)
+```
+
+**Example:**
+```lua
+local lastHp = GetVariable("last_hp")
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:2877-2879`
+
+---
 
 ## Table Persistence
 
-- `saveTable()` - Save a table to localStorage
-- `loadTable()` - Load a table from localStorage
+Save complex data structures to localStorage for persistence between sessions.
+
+### saveTable
+
+Save a Lua table to persistent storage.
+
+**API:**
+```lua
+local success = saveTable(tableName, data)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| tableName | string | Yes | Unique name for this table |
+| data | table | Yes | Table data to save |
+
+**Returns:** `boolean` - Whether the save succeeded
+
+**Example:**
+```lua
+-- Save player state
+local playerData = {
+  name = "Hero",
+  level = 25,
+  class = "Warrior",
+  skills = { "slash", "parry", "berserk" },
+  stats = {
+    strength = 18,
+    dexterity = 14,
+    constitution = 16
+  }
+}
+
+if saveTable("player_data", playerData) then
+  echo("Player data saved!")
+else
+  echo("Failed to save player data", "#ff0000")
+end
+
+-- Save map data
+local visitedRooms = {
+  ["town_square"] = { visits = 15, lastVisit = os.time() },
+  ["tavern"] = { visits = 8, lastVisit = os.time() }
+}
+saveTable("visited_rooms", visitedRooms)
+
+-- Save configuration
+local config = {
+  autoHeal = true,
+  healThreshold = 50,
+  showDamageNumbers = true
+}
+saveTable("plugin_config", config)
+```
+
+**Source:** `types/plugin.ts:159`, `core/next-gen-plugin-runtime.ts:1501`
+
+---
+
+### loadTable
+
+Load a previously saved table from persistent storage.
+
+**API:**
+```lua
+local data = loadTable(tableName)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| tableName | string | Yes | Name of the table to load |
+
+**Returns:** `table` - The saved data, or `nil` if not found
+
+**Example:**
+```lua
+-- Load player data on startup
+local playerData = loadTable("player_data")
+if playerData then
+  echo("Welcome back, " .. playerData.name .. "!")
+  echo("Level " .. playerData.level .. " " .. playerData.class)
+else
+  echo("No saved data found. Starting fresh.")
+  playerData = { name = "NewPlayer", level = 1 }
+end
+
+-- Load configuration with defaults
+local config = loadTable("plugin_config") or {
+  autoHeal = false,
+  healThreshold = 30,
+  showDamageNumbers = true
+}
+
+-- Load visited rooms
+local visitedRooms = loadTable("visited_rooms") or {}
+```
+
+**Source:** `types/plugin.ts:160`, `core/next-gen-plugin-runtime.ts:1502`
+
+---
+
+## Complete Persistence Example
+
+```lua
+-- Complete data persistence example
+local plugin = {}
+
+-- Plugin state
+local state = {
+  character = nil,
+  config = nil,
+  statistics = nil
+}
+
+-- Default configuration
+local defaultConfig = {
+  autoHeal = true,
+  healThreshold = 30,
+  autoLoot = true,
+  announceLevel = true
+}
+
+-- Default statistics
+local defaultStats = {
+  kills = 0,
+  deaths = 0,
+  goldEarned = 0,
+  damageDealt = 0,
+  damageTaken = 0,
+  sessionsPlayed = 0
+}
+
+function plugin.onLoad()
+  -- Load saved data or use defaults
+  state.config = loadTable("my_plugin_config") or defaultConfig
+  state.statistics = loadTable("my_plugin_stats") or defaultStats
+  state.character = loadTable("my_plugin_character") or {}
+
+  -- Increment session counter
+  state.statistics.sessionsPlayed = state.statistics.sessionsPlayed + 1
+
+  echo("Plugin loaded! Session #" .. state.statistics.sessionsPlayed, "#00ff00")
+
+  -- Display current stats
+  if state.statistics.kills > 0 then
+    echo("Total kills: " .. state.statistics.kills)
+    echo("Total deaths: " .. state.statistics.deaths)
+    local kd = state.statistics.kills / math.max(1, state.statistics.deaths)
+    echo(string.format("K/D Ratio: %.2f", kd))
+  end
+
+  -- Register config command
+  registerCommand("myconfig", function(args)
+    if args == "autoheal on" then
+      state.config.autoHeal = true
+      saveTable("my_plugin_config", state.config)
+      echo("Auto-heal enabled")
+    elseif args == "autoheal off" then
+      state.config.autoHeal = false
+      saveTable("my_plugin_config", state.config)
+      echo("Auto-heal disabled")
+    else
+      echo("Current config:")
+      echo("  Auto-heal: " .. tostring(state.config.autoHeal))
+      echo("  Heal threshold: " .. state.config.healThreshold .. "%")
+      echo("  Auto-loot: " .. tostring(state.config.autoLoot))
+    end
+  end, "View/change plugin configuration")
+
+  -- Register stats command
+  registerCommand("mystats", function()
+    echo("=== Statistics ===")
+    echo("Kills: " .. state.statistics.kills)
+    echo("Deaths: " .. state.statistics.deaths)
+    echo("Gold earned: " .. state.statistics.goldEarned)
+    echo("Damage dealt: " .. state.statistics.damageDealt)
+    echo("Damage taken: " .. state.statistics.damageTaken)
+    echo("Sessions: " .. state.statistics.sessionsPlayed)
+  end, "Show accumulated statistics")
+
+  -- Set up triggers to track statistics
+  addTrigger("is DEAD", function(line)
+    if line:find("You have slain") then
+      state.statistics.kills = state.statistics.kills + 1
+    end
+  end)
+
+  addTrigger("You have died", function()
+    state.statistics.deaths = state.statistics.deaths + 1
+    saveTable("my_plugin_stats", state.statistics)
+    echo("Death recorded. Total: " .. state.statistics.deaths, "#ff0000")
+  end)
+
+  addTrigger("You receive (%d+) gold", function(line, matches)
+    local gold = tonumber(matches[1]) or 0
+    state.statistics.goldEarned = state.statistics.goldEarned + gold
+  end, { type = "regex" })
+end
+
+function plugin.onUnload()
+  -- Save all data before unloading
+  saveTable("my_plugin_config", state.config)
+  saveTable("my_plugin_stats", state.statistics)
+  saveTable("my_plugin_character", state.character)
+
+  echo("Plugin data saved!", "#888888")
+end
+
+return plugin
+```
+
+---
+
+## Best Practices
+
+### Variables vs Tables
+
+| Use Variables For | Use Tables For |
+|------------------|----------------|
+| Simple values (hp, mana, gold) | Complex nested data |
+| Temporary session data | Data that must persist between sessions |
+| Fast access counters | Configuration settings |
+| State flags | Historical data / statistics |
+
+### Naming Conventions
+
+```lua
+-- Use descriptive, namespaced names to avoid conflicts
+setVariable("combat_target_name", target)
+setVariable("combat_last_attack", os.time())
+
+-- For tables, prefix with plugin name
+saveTable("mapper_visited_rooms", rooms)
+saveTable("mapper_config", config)
+```
+
+### Error Handling
+
+```lua
+-- Always check loadTable results
+local data = loadTable("important_data")
+if not data then
+  echo("Warning: Could not load saved data", "#ffff00")
+  data = createDefaultData()
+end
+
+-- Verify saveTable succeeded
+if not saveTable("important_data", data) then
+  echo("Error: Failed to save data!", "#ff0000")
+end
+```
