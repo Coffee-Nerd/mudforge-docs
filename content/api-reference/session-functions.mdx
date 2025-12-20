@@ -1,42 +1,608 @@
 # Multi-Session Functions
 
-Functions for working with multiple MUD connections.
+Functions for working with multiple MUD connections. The multi-session API allows plugins to manage and communicate across multiple simultaneous MUD connections.
 
-> This page will be populated with verified API documentation from the source code.
+All functions documented here have been verified against the source code in `types/plugin.ts:195-247` and `core/plugin-session-api.ts`.
+
+---
 
 ## Session Information
 
-- `getSession()` - Get current session info
-- `getSessionId()` - Get current session ID
-- `getAllSessions()` - Get all sessions
-- `getSessionById()` - Get session by ID
-- `getSessionByName()` - Get session by name
-- `isActiveSession()` - Check if current session is active
+### getSession
+
+Get information about the current session.
+
+```lua
+getSession()
+```
+
+**Returns:** `table | null` - Session information object or `null` if no session.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| id | string | Unique session identifier |
+| name | string | Session display name |
+| host | string | MUD server hostname |
+| port | number | MUD server port |
+| connected | boolean | Whether the session is connected |
+| active | boolean | Whether this is the currently active session |
+
+**Source:** `types/plugin.ts:201`, `core/plugin-session-api.ts:135-146`
+
+**Example:**
+```lua
+local session = getSession()
+if session then
+  print("Session: " .. session.name)
+  print("Connected to: " .. session.host .. ":" .. session.port)
+  print("Status: " .. (session.connected and "Connected" or "Disconnected"))
+end
+```
+
+---
+
+### getSessionId
+
+Get the current session's unique identifier.
+
+```lua
+getSessionId()
+```
+
+**Returns:** `string | null` - The session ID or `null` if no session.
+
+**Source:** `types/plugin.ts:203`, `core/plugin-session-api.ts:148-150`
+
+**Example:**
+```lua
+local id = getSessionId()
+if id then
+  print("Current session ID: " .. id)
+end
+```
+
+---
+
+### getAllSessions
+
+Get information about all sessions.
+
+```lua
+getAllSessions()
+```
+
+**Returns:** `table` - Array of session information objects (same format as `getSession()`).
+
+**Source:** `types/plugin.ts:205`, `core/plugin-session-api.ts:152-159`
+
+**Example:**
+```lua
+local sessions = getAllSessions()
+print("Active sessions: " .. #sessions)
+
+for i, session in ipairs(sessions) do
+  local status = session.connected and "Connected" or "Disconnected"
+  local active = session.active and " [ACTIVE]" or ""
+  print(i .. ". " .. session.name .. " - " .. status .. active)
+end
+```
+
+---
+
+### getSessionById
+
+Get session information by its unique ID.
+
+```lua
+getSessionById(sessionId)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| sessionId | string | Yes | The session ID to look up |
+
+**Returns:** `table | null` - Session information object or `null` if not found.
+
+**Source:** `types/plugin.ts:207`, `core/plugin-session-api.ts:161-169`
+
+**Example:**
+```lua
+local session = getSessionById("abc123")
+if session then
+  print("Found session: " .. session.name)
+end
+```
+
+---
+
+### getSessionByName
+
+Get session information by its display name.
+
+```lua
+getSessionByName(name)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| name | string | Yes | The session name to look up |
+
+**Returns:** `table | null` - Session information object or `null` if not found.
+
+**Source:** `types/plugin.ts:209`, `core/plugin-session-api.ts:171-179`
+
+**Example:**
+```lua
+local session = getSessionByName("Main Character")
+if session then
+  print("Session ID: " .. session.id)
+  print("Connected: " .. tostring(session.connected))
+end
+```
+
+---
+
+### isActiveSession
+
+Check if the current session is the active (focused) session.
+
+```lua
+isActiveSession()
+```
+
+**Returns:** `boolean` - `true` if this is the active session, `false` otherwise.
+
+**Source:** `types/plugin.ts:211`, `core/plugin-session-api.ts:181-184`
+
+**Example:**
+```lua
+if isActiveSession() then
+  -- Only show notifications for active session
+  print("New message received!")
+else
+  -- Could trigger system notification instead
+  log("Message received in background session")
+end
+```
+
+---
 
 ## Cross-Session Commands
 
-- `sendToSession()` - Send command to named session
-- `sendToSessionId()` - Send command to session by ID
-- `sendToAll()` - Send command to all sessions
-- `sendToOthers()` - Send command to all except current
+### sendToSession
+
+Send a command to a session by name.
+
+```lua
+sendToSession(sessionName, command)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| sessionName | string | Yes | The session name to send to |
+| command | string | Yes | The command to send |
+
+**Returns:** `boolean` - `true` if the command was sent successfully.
+
+**Source:** `types/plugin.ts:215`, `core/plugin-session-api.ts:190-203`
+
+**Example:**
+```lua
+-- Send command to specific character
+sendToSession("Healer", "cast heal tank")
+sendToSession("Tank", "rescue mage")
+```
+
+---
+
+### sendToSessionId
+
+Send a command to a session by its unique ID.
+
+```lua
+sendToSessionId(sessionId, command)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| sessionId | string | Yes | The session ID to send to |
+| command | string | Yes | The command to send |
+
+**Returns:** `boolean` - `true` if the command was sent successfully.
+
+**Source:** `types/plugin.ts:217`, `core/plugin-session-api.ts:205-212`
+
+**Example:**
+```lua
+local targetId = "session-abc123"
+sendToSessionId(targetId, "follow leader")
+```
+
+---
+
+### sendToAll
+
+Send a command to all connected sessions.
+
+```lua
+sendToAll(command)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| command | string | Yes | The command to send to all sessions |
+
+**Returns:** `number` - The number of sessions the command was sent to.
+
+**Source:** `types/plugin.ts:219`, `core/plugin-session-api.ts:214-222`
+
+**Example:**
+```lua
+-- Make all characters follow
+local count = sendToAll("follow leader")
+print("Sent follow command to " .. count .. " sessions")
+
+-- Group recall
+sendToAll("recall")
+```
+
+---
+
+### sendToOthers
+
+Send a command to all sessions except the current one.
+
+```lua
+sendToOthers(command)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| command | string | Yes | The command to send |
+
+**Returns:** `number` - The number of sessions the command was sent to.
+
+**Source:** `types/plugin.ts:221`, `core/plugin-session-api.ts:224-233`
+
+**Example:**
+```lua
+-- Tell other characters to follow you
+sendToOthers("follow " .. getVariable("myName"))
+
+-- Group command excluding self
+sendToOthers("assist tank")
+```
+
+---
 
 ## Cross-Session Variables
 
-- `getSessionVariable()` - Get variable from another session
-- `setSessionVariable()` - Set variable in another session
-- `getAllSessionVariables()` - Get variable from all sessions
+### getSessionVariable
+
+Get a variable's value from another session.
+
+```lua
+getSessionVariable(sessionName, variableName)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| sessionName | string | Yes | The session name |
+| variableName | string | Yes | The variable name to retrieve |
+
+**Returns:** `any` - The variable value, or `nil` if not found.
+
+**Source:** `types/plugin.ts:225`, `core/plugin-session-api.ts:239-254`
+
+**Example:**
+```lua
+-- Get healer's current mana
+local healerMana = getSessionVariable("Healer", "currentMana")
+if healerMana and healerMana < 100 then
+  print("Healer is low on mana!")
+end
+```
+
+---
+
+### setSessionVariable
+
+Set a variable's value in another session.
+
+```lua
+setSessionVariable(sessionName, variableName, value)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| sessionName | string | Yes | The session name |
+| variableName | string | Yes | The variable name to set |
+| value | any | Yes | The value to set |
+
+**Returns:** `boolean` - `true` if the variable was set successfully.
+
+**Source:** `types/plugin.ts:227`, `core/plugin-session-api.ts:256-284`
+
+**Example:**
+```lua
+-- Share target info with other sessions
+setSessionVariable("Tank", "currentTarget", "Dragon")
+setSessionVariable("Healer", "healTarget", "Tank")
+```
+
+---
+
+### getAllSessionVariables
+
+Get a variable's value from all sessions.
+
+```lua
+getAllSessionVariables(variableName)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| variableName | string | Yes | The variable name to retrieve from all sessions |
+
+**Returns:** `table` - A table mapping session IDs to `{name, value}` pairs.
+
+**Source:** `types/plugin.ts:229`, `core/plugin-session-api.ts:286-307`
+
+**Example:**
+```lua
+-- Get health from all sessions
+local healthData = getAllSessionVariables("currentHealth")
+
+for sessionId, data in pairs(healthData) do
+  print(data.name .. ": " .. data.value .. " HP")
+end
+```
+
+---
 
 ## Cross-Session Events
 
-- `onGlobal()` - Subscribe to global events
-- `broadcast()` - Broadcast event to all sessions
-- `emitToSession()` - Send event to specific session
+### onGlobal
+
+Subscribe to events from all sessions. Returns an unsubscribe function.
+
+```lua
+onGlobal(event, callback)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| event | string | Yes | The event name to subscribe to |
+| callback | function | Yes | Function called when the event fires |
+
+**Returns:** `function` - Call this function to unsubscribe.
+
+**Source:** `types/plugin.ts:233`, `core/plugin-session-api.ts:313-329`
+
+**Example:**
+```lua
+-- Listen for combat events from any session
+local unsub = onGlobal("combat:start", function(data)
+  print("Combat started in session: " .. data.sessionName)
+end)
+
+-- Later, to unsubscribe:
+unsub()
+```
+
+---
+
+### broadcast
+
+Broadcast an event to all sessions.
+
+```lua
+broadcast(event, data?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| event | string | Yes | The event name to broadcast |
+| data | any | No | Optional data to send with the event |
+
+**Source:** `types/plugin.ts:235`, `core/plugin-session-api.ts:331-338`
+
+**Example:**
+```lua
+-- Notify all sessions of group formation
+broadcast("group:formed", {
+  leader = "Tank",
+  members = {"Tank", "Healer", "DPS1", "DPS2"}
+})
+
+-- Simple event broadcast
+broadcast("combat:start")
+```
+
+---
+
+### emitToSession
+
+Send an event to a specific session.
+
+```lua
+emitToSession(sessionName, event, data?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| sessionName | string | Yes | The session to send the event to |
+| event | string | Yes | The event name |
+| data | any | No | Optional data to send with the event |
+
+**Returns:** `boolean` - `true` if the event was sent successfully.
+
+**Source:** `types/plugin.ts:237`, `core/plugin-session-api.ts:340-353`
+
+**Example:**
+```lua
+-- Tell healer to heal a specific target
+emitToSession("Healer", "heal:request", {
+  target = "Tank",
+  priority = "high"
+})
+```
+
+---
 
 ## Cross-Session GMCP
 
-- `getSessionGMCP()` - Get GMCP from another session
-- `getAllSessionGMCP()` - Get GMCP from all sessions
+### getSessionGMCP
+
+Get GMCP data from another session.
+
+```lua
+getSessionGMCP(sessionName, packageName?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| sessionName | string | Yes | The session name |
+| packageName | string | No | Optional GMCP package name. If omitted, returns all GMCP data. |
+
+**Returns:** `any` - The GMCP data, or `null` if not available.
+
+**Source:** `types/plugin.ts:241`, `core/plugin-session-api.ts:359-378`
+
+**Example:**
+```lua
+-- Get healer's current vitals
+local vitals = getSessionGMCP("Healer", "Char.Vitals")
+if vitals then
+  print("Healer HP: " .. vitals.hp .. "/" .. vitals.maxhp)
+end
+
+-- Get all GMCP data from a session
+local allGmcp = getSessionGMCP("Tank")
+```
+
+---
+
+### getAllSessionGMCP
+
+Get GMCP data for a specific package from all sessions.
+
+```lua
+getAllSessionGMCP(packageName)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| packageName | string | Yes | The GMCP package name to retrieve |
+
+**Returns:** `table` - A table mapping session IDs to `{name, data}` pairs.
+
+**Source:** `types/plugin.ts:243`, `core/plugin-session-api.ts:380-401`
+
+**Example:**
+```lua
+-- Get vitals from all characters
+local allVitals = getAllSessionGMCP("Char.Vitals")
+
+for sessionId, info in pairs(allVitals) do
+  local v = info.data
+  print(info.name .. ": " .. v.hp .. "/" .. v.maxhp .. " HP")
+end
+```
+
+---
 
 ## Session Switching
 
-- `switchToSession()` - Switch to another session
+### switchToSession
+
+Switch the active session to another session.
+
+```lua
+switchToSession(sessionName)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| sessionName | string | Yes | The session name to switch to |
+
+**Returns:** `boolean` - `true` if the switch was successful.
+
+**Source:** `types/plugin.ts:247`, `core/plugin-session-api.ts:407-420`
+
+**Example:**
+```lua
+-- Switch to healer when health is low
+if myHealth < 100 then
+  switchToSession("Healer")
+end
+```
+
+---
+
+## Multi-Session Use Cases
+
+### Group Health Monitor
+
+```lua
+-- Create a widget showing all character health
+local widget = createWidget("group-health", "canvas", {
+  width = 200,
+  height = 150
+})
+
+function updateGroupHealth()
+  clear()
+
+  local allVitals = getAllSessionGMCP("Char.Vitals")
+  local y = 10
+
+  for sessionId, info in pairs(allVitals) do
+    local v = info.data
+    local pct = v.hp / v.maxhp
+
+    -- Draw health bar
+    drawRect(10, y, 180, 20, "#333333")
+    drawRect(10, y, 180 * pct, 20, pct > 0.5 and "#00ff00" or pct > 0.25 and "#ffff00" or "#ff0000")
+    drawText(info.name .. ": " .. v.hp, 15, y + 15, "12px Arial", "#ffffff")
+
+    y = y + 30
+  end
+end
+
+-- Update on any vitals change
+onMSDPChangeGlobal("HEALTH", function(sessionId, value, oldValue)
+  updateGroupHealth()
+end)
+```
+
+### Follow the Leader
+
+```lua
+-- Make all other characters follow when you move
+onGMCPUpdate("Room.Info", function(data)
+  if isActiveSession() then
+    -- I moved, tell others to follow
+    local myName = getVariable("characterName")
+    sendToOthers("follow " .. myName)
+  end
+end)
+```
+
+### Coordinated Combat
+
+```lua
+-- Combat coordinator plugin
+function coordinateAttack(target)
+  -- Send attack commands to all
+  sendToSession("Tank", "kill " .. target)
+  sendToSession("DPS1", "backstab " .. target)
+  sendToSession("DPS2", "cast fireball " .. target)
+  sendToSession("Healer", "assist tank")
+end
+
+-- Register command
+registerCommand("attack", function(args)
+  coordinateAttack(args[1])
+end)
+```
