@@ -1,21 +1,445 @@
 # MUD Interaction
 
-Functions for interacting with the MUD server and terminal.
+Functions for interacting with the MUD server and terminal output.
 
-> This page will be populated with verified API documentation from the source code.
+All functions documented here have been verified against the source code.
+
+---
 
 ## Sending Commands
 
-- `send()` - Send a command to the MUD
-- `Execute()` - Execute a command (MUSHclient alias)
+### send
+
+Send a command to the MUD server.
+
+**API:**
+```lua
+send(command)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| command | string | Yes | The command to send to the MUD |
+
+**Example:**
+```lua
+-- Send a simple command
+send("look")
+
+-- Send movement commands
+send("north")
+send("go north")
+
+-- Send commands with arguments
+send("say Hello, everyone!")
+send("tell bob How are you?")
+```
+
+**Source:** `types/plugin.ts:141`
+
+---
+
+### Send (MUSHclient Compatibility)
+
+Send a command with wildcard substitution (MUSHclient compatibility).
+
+**API:**
+```lua
+Send(command)
+```
+
+When used within a trigger context, `%1`, `%2`, etc. are substituted with matched wildcard values.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| command | string | Yes | Command with optional wildcard placeholders |
+
+**Example:**
+```lua
+-- In a trigger callback, wildcards are substituted
+-- If trigger matched "Bob says 'hello'" with pattern "(\\w+) says '(.+)'"
+-- %1 = "Bob", %2 = "hello"
+Send("tell %1 I heard you say %2")
+-- Sends: "tell Bob I heard you say hello"
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:2804-2813`
+
+---
+
+### executeCommand
+
+Execute a command through the command dispatcher.
+
+**API:**
+```lua
+executeCommand(command)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| command | string | Yes | The command to execute |
+
+**Note:** This function is equivalent to `Execute()` from MUSHclient.
+
+**Source:** `types/plugin.ts:281`
+
+---
 
 ## Terminal Output
 
-- `echo()` - Echo text to the terminal
-- `print()` - Print to plugin output
-- `colourNote()` - Output colored text (MUSHclient style)
-- `Note()` - Echo text (MUSHclient alias)
+### echo
+
+Output text to the terminal (visible to the user but not sent to MUD).
+
+**API:**
+```lua
+echo(text, color?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| text | string | Yes | - | Text to display in terminal |
+| color | string | No | - | Optional color for the text |
+
+**Example:**
+```lua
+-- Simple echo
+echo("Plugin loaded successfully!")
+
+-- With color
+echo("Warning: Low health!", "#ff0000")
+echo("Quest complete!", "#00ff00")
+
+-- Multi-line output
+echo("=== Combat Summary ===")
+echo("Damage dealt: 150")
+echo("Damage taken: 45")
+```
+
+**Source:** `types/plugin.ts:142`
+
+---
+
+### print
+
+Print a message to the plugin output/terminal.
+
+**API:**
+```lua
+print(message)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| message | string | Yes | Message to print |
+
+**Example:**
+```lua
+print("Debug: Current HP = " .. hp)
+print("Processing trigger...")
+```
+
+**Source:** `types/plugin.ts:171`, `core/next-gen-plugin-runtime.ts:852-854`
+
+---
+
+### utilprint
+
+Print a utility message (similar to print but may have different formatting).
+
+**API:**
+```lua
+utilprint(message)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| message | string | Yes | Utility message to print |
+
+**Example:**
+```lua
+utilprint("Timer expired")
+utilprint("Connection status: connected")
+```
+
+**Source:** `types/plugin.ts:172`, `core/next-gen-plugin-runtime.ts:856-858`
+
+---
+
+### tprint
+
+Print a Lua table in a readable format (for debugging).
+
+**API:**
+```lua
+tprint(table, indent?, done?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| table | table | Yes | - | Table to print |
+| indent | number | No | 0 | Initial indentation |
+| done | Set | No | {} | Tables already printed (prevents circular refs) |
+
+**Example:**
+```lua
+local player = {
+  name = "Hero",
+  level = 10,
+  stats = {
+    hp = 100,
+    mp = 50
+  }
+}
+
+tprint(player)
+-- Output:
+-- "name" = "Hero"
+-- "level" = 10
+-- "stats":
+--   "hp" = 100
+--   "mp" = 50
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:861-893`
+
+---
+
+### colourNote
+
+Output colored text to the terminal (MUSHclient compatibility).
+
+**Legacy API:**
+```lua
+colourNote(foreground, background, text)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| foreground | string | Yes | Foreground color name |
+| background | string | Yes | Background color name (can be empty "") |
+| text | string | Yes | Text to display |
+
+**Supported Color Names:**
+- `black`, `red`, `green`, `yellow`
+- `blue`, `magenta`, `cyan`, `white`
+
+**Example:**
+```lua
+-- Red text on default background
+colourNote("red", "", "DANGER: Low health!")
+
+-- Green text on black background
+colourNote("green", "black", "You found 100 gold!")
+
+-- Yellow warning
+colourNote("yellow", "", "Warning: Player approaching")
+```
+
+**Source:** `types/plugin.ts:285`, `core/next-gen-plugin-runtime.ts:2820-2833`
+
+---
+
+### Note (MUSHclient Compatibility)
+
+Echo text to the terminal (MUSHclient alias for `echo`).
+
+**API:**
+```lua
+Note(text)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| text | string | Yes | Text to display |
+
+**Example:**
+```lua
+Note("This is displayed in the terminal")
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:2817-2819`
+
+---
 
 ## Plugin Commands
 
-- `registerCommand()` - Register a plugin command
+### registerCommand
+
+Register a custom command that can be executed from the terminal.
+
+**API:**
+```lua
+registerCommand(commandName, handler, description?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| commandName | string | Yes | - | Command name (without leading slash) |
+| handler | function | Yes | - | Function to handle the command |
+| description | string | No | "" | Description for help text |
+
+**Example:**
+```lua
+-- Register a simple command
+registerCommand("hello", function(args)
+  echo("Hello, " .. (args or "world") .. "!")
+end, "Say hello to someone")
+
+-- Register a status command
+registerCommand("status", function()
+  echo("HP: " .. getVariable("hp") .. "/" .. getVariable("maxhp"))
+  echo("MP: " .. getVariable("mp") .. "/" .. getVariable("maxmp"))
+end, "Show character status")
+
+-- Register a command with arguments
+registerCommand("goto", function(args)
+  if args then
+    send("speedwalk " .. args)
+  else
+    echo("Usage: /goto <destination>")
+  end
+end, "Go to a named location")
+```
+
+**Usage:** Once registered, commands can be invoked from the terminal with `/commandName`:
+```
+/hello World
+/status
+/goto tavern
+```
+
+**Source:** `types/plugin.ts:163`, `core/next-gen-plugin-runtime.ts:1503`
+
+---
+
+## Delayed Execution
+
+### DoAfter (MUSHclient Compatibility)
+
+Execute a command after a delay.
+
+**API:**
+```lua
+DoAfter(seconds, command)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| seconds | number | Yes | Delay in seconds |
+| command | string | Yes | Command to execute |
+
+**Example:**
+```lua
+-- Send "look" after 2 seconds
+DoAfter(2, "look")
+
+-- Chain delayed commands
+DoAfter(1, "drink potion")
+DoAfter(2, "cast heal")
+DoAfter(3, "attack")
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:2837-2848`
+
+---
+
+### DoAfterSpecial (MUSHclient Compatibility)
+
+Execute a command or script after a delay with specified send-to target.
+
+**API:**
+```lua
+DoAfterSpecial(seconds, code, sendto)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| seconds | number | Yes | Delay in seconds |
+| code | string | Yes | Command or script to execute |
+| sendto | number | Yes | Send-to constant (see below) |
+
+**Send-to Constants:**
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| sendto.world | 0 | Send to MUD |
+| sendto.output | 1 | Echo to terminal |
+| sendto.execute | 10 | Execute as command |
+| sendto.speedwalk | 11 | Execute as speedwalk |
+| sendto.script | 12 | Execute as script |
+| sendto.variable | 14 | Store in variable |
+
+**Example:**
+```lua
+-- Send to MUD after delay
+DoAfterSpecial(5, "drink potion", sendto.world)
+
+-- Echo message after delay
+DoAfterSpecial(10, "Timer expired!", sendto.output)
+
+-- Execute script after delay
+DoAfterSpecial(3, "healIfLow()", sendto.script)
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:2850-2871`
+
+---
+
+## Complete MUD Interaction Example
+
+```lua
+-- Complete MUD interaction example
+local plugin = {}
+
+local combatActive = false
+local targetName = nil
+
+function plugin.onLoad()
+  -- Register combat commands
+  registerCommand("attack", function(target)
+    if target then
+      targetName = target
+      combatActive = true
+      send("kill " .. target)
+      echo("Starting combat with " .. target, "#ff6600")
+    else
+      echo("Usage: /attack <target>", "#ff0000")
+    end
+  end, "Start combat with a target")
+
+  registerCommand("flee", function()
+    if combatActive then
+      combatActive = false
+      send("flee")
+      echo("Fleeing from combat!", "#ffff00")
+    else
+      echo("Not in combat", "#888888")
+    end
+  end, "Flee from combat")
+
+  -- Add trigger for low health warning
+  addTrigger("Your health is critical", function()
+    colourNote("red", "", "!!! CRITICAL HEALTH !!!")
+    DoAfter(0.5, "drink healing potion")
+  end)
+
+  -- Add trigger for combat end
+  addTrigger("is DEAD", function(line)
+    if combatActive then
+      combatActive = false
+      echo("Combat ended - " .. targetName .. " defeated!", "#00ff00")
+      targetName = nil
+    end
+  end)
+
+  echo("Combat plugin loaded!", "#00ff00")
+end
+
+function plugin.onUnload()
+  echo("Combat plugin unloaded", "#888888")
+end
+
+return plugin
+```
