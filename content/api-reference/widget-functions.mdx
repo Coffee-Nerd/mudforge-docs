@@ -1,34 +1,708 @@
 # Widget Functions
 
-Functions for creating and managing widgets.
+Functions for creating, managing, and interacting with plugin widgets.
 
-> This page will be populated with verified API documentation from the source code.
+All functions documented here have been verified against the source code.
+
+---
 
 ## Widget Lifecycle
 
-- `createWidget()` - Create a new widget
-- `destroyWidget()` - Destroy a widget
-- `showWidget()` - Show a hidden widget
-- `hideWidget()` - Hide a visible widget
+### createWidget
+
+Create a new widget with the specified configuration.
+
+**Next-Gen API:**
+```lua
+local widgetId = createWidget(config)
+```
+
+**Legacy API:**
+```lua
+local widgetId = createWidget(config)
+```
+
+| Config Property | Type | Required | Default | Description |
+|-----------------|------|----------|---------|-------------|
+| type | string | No | "canvas" | Widget type: "canvas", "html", "svg", "enhanced-text" |
+| renderMode | string | No | - | Alternative to type (for compatibility) |
+| x | number | No | 200 | X position |
+| y | number | No | 150 | Y position |
+| width | number | No | 300 | Widget width |
+| height | number | No | 200 | Widget height |
+| title | string | No | - | Widget title/name |
+| visible | boolean | No | true | Initial visibility |
+| zIndex | number | No | 1000 | Z-order (higher = on top) |
+| resizable | boolean | No | true | Allow user resizing |
+| movable | boolean | No | true | Allow user dragging |
+
+**Returns:** `string` - The widget ID
+
+**Example:**
+```lua
+-- Create a canvas widget
+local mapWidget = createWidget({
+  type = "canvas",
+  title = "Map Widget",
+  x = 100,
+  y = 100,
+  width = 400,
+  height = 300,
+  resizable = true,
+  movable = true
+})
+
+-- Set it as active for drawing
+setActiveWidget(mapWidget)
+
+-- Now draw on it
+drawRect(0, 0, 400, 300, "#1a1a1a")
+drawText("Map View", 10, 20, "#ffffff")
+```
+
+**Source:** `types/plugin.ts:65`, `core/next-gen-plugin-runtime.ts:1544-1596`
+
+---
+
+### destroyWidget
+
+Destroy a widget and clean up all its resources and event handlers.
+
+**API:**
+```lua
+destroyWidget(widgetId)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | The widget ID to destroy |
+
+**Example:**
+```lua
+-- Clean up when plugin unloads
+function plugin.onUnload()
+  destroyWidget(mapWidget)
+end
+```
+
+**Source:** `types/plugin.ts:66`, `core/next-gen-plugin-runtime.ts:1745-1762`
+
+---
+
+### showWidget
+
+Make a widget visible.
+
+**API:**
+```lua
+showWidget(widgetId)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | The widget ID to show |
+
+**Example:**
+```lua
+-- Toggle widget visibility
+showWidget(statsWidget)
+```
+
+**Source:** `types/plugin.ts:67`, `core/next-gen-plugin-runtime.ts:1731-1736`
+
+---
+
+### hideWidget
+
+Hide a widget (but don't destroy it).
+
+**API:**
+```lua
+hideWidget(widgetId)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | The widget ID to hide |
+
+**Example:**
+```lua
+-- Hide widget when not needed
+hideWidget(statsWidget)
+```
+
+**Source:** `types/plugin.ts:68`, `core/next-gen-plugin-runtime.ts:1738-1743`
+
+---
 
 ## Widget Manipulation
 
-- `moveWidget()` - Move a widget to a new position
-- `resizeWidget()` - Resize a widget
-- `setWidgetZOrder()` - Set widget layer ordering
+### moveWidget
+
+Move a widget to a new position.
+
+**Legacy API:**
+```lua
+moveWidget(widgetId, x, y)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | The widget ID |
+| x | number | Yes | New X position |
+| y | number | Yes | New Y position |
+
+**Example:**
+```lua
+-- Move widget to top-left corner
+moveWidget(statsWidget, 10, 10)
+```
+
+**Source:** `types/plugin.ts:69`
+
+---
+
+### resizeWidget
+
+Resize a widget to new dimensions.
+
+**Legacy API:**
+```lua
+resizeWidget(widgetId, width, height)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | The widget ID |
+| width | number | Yes | New width |
+| height | number | Yes | New height |
+
+**Example:**
+```lua
+-- Make widget larger
+resizeWidget(mapWidget, 600, 400)
+```
+
+**Source:** `types/plugin.ts:70`
+
+---
+
+### setWidgetZOrder
+
+Set the z-order (stacking order) of a widget.
+
+**API:**
+```lua
+setWidgetZOrder(widgetId, zIndex)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | The widget ID |
+| zIndex | number | Yes | Z-index value (higher = on top) |
+
+**Returns:** `boolean` - Success or failure
+
+**Example:**
+```lua
+-- Bring widget to front
+setWidgetZOrder(popupWidget, 2000)
+
+-- Send widget to back
+setWidgetZOrder(backgroundWidget, 500)
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:641-662`
+
+---
 
 ## Widget Properties
 
-- `getWidgetProperty()` - Get a widget property
-- `setWidgetProperty()` - Set a widget property
-- `widgetInfo()` - Get widget information
+### getWidgetProperty
 
-## Widget Events
+Get a property value from a widget.
 
-- `registerWidgetEvent()` - Register an event handler
-- `unregisterWidgetEvent()` - Unregister an event handler
+**API:**
+```lua
+local value = getWidgetProperty(widgetId, property)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | The widget ID |
+| property | string | Yes | Property name to retrieve |
+
+**Returns:** `any` - The property value
+
+**Example:**
+```lua
+local visible = getWidgetProperty(statsWidget, "visible")
+local width = getWidgetProperty(statsWidget, "width")
+```
+
+**Source:** `types/plugin.ts:71`, `core/next-gen-plugin-runtime.ts:1773-1775`
+
+---
+
+### setWidgetProperty
+
+Set a property value on a widget.
+
+**API:**
+```lua
+setWidgetProperty(widgetId, property, value)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | The widget ID |
+| property | string | Yes | Property name to set |
+| value | any | Yes | New property value |
+
+**Example:**
+```lua
+setWidgetProperty(statsWidget, "title", "Player Stats")
+setWidgetProperty(statsWidget, "visible", true)
+```
+
+**Source:** `types/plugin.ts:72`, `core/next-gen-plugin-runtime.ts:1764-1771`
+
+---
+
+### widgetInfo
+
+Get detailed information about a widget (similar to MUSHclient's WindowInfo).
+
+**Next-Gen API:**
+```lua
+local value = widgetInfo(widgetId, infoType)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | The widget ID |
+| infoType | number | Yes | Information type code (see table below) |
+
+**Info Type Codes:**
+
+| Code | Description | Returns |
+|------|-------------|---------|
+| 1 | Original X position | number |
+| 2 | Original Y position | number |
+| 3 | Current width | number |
+| 4 | Current height | number |
+| 5 | Original width | number |
+| 6 | Original height | number |
+| 7 | Is visible | boolean |
+| 8 | Is minimized | boolean |
+| 9 | Z-order/layer | number |
+| 10 | Widget type | string |
+| 11 | Last mouse X (relative to widget) | number |
+| 12 | Last mouse Y (relative to widget) | number |
+| 13 | Mouse event counter | number |
+| 14 | Last clicked button | number |
+| 15 | Current X position | number |
+| 16 | Current Y position | number |
+| 17 | Creation timestamp | number |
+| 18 | Plugin ID that created it | string |
+| 19 | Widget name/title | string |
+| 20 | Widget ID | string |
+| 21 | Is canvas ready | boolean |
+
+**Example:**
+```lua
+-- Get current dimensions
+local width = widgetInfo(mapWidget, 3)
+local height = widgetInfo(mapWidget, 4)
+
+-- Check visibility
+local isVisible = widgetInfo(mapWidget, 7)
+
+-- Get mouse position within widget
+local mouseX = widgetInfo(mapWidget, 11)
+local mouseY = widgetInfo(mapWidget, 12)
+
+-- Check if widget has been resized from original
+local origWidth = widgetInfo(mapWidget, 5)
+local currWidth = widgetInfo(mapWidget, 3)
+if currWidth ~= origWidth then
+  print("Widget has been resized")
+end
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:578-638`
+
+---
 
 ## Active Widget
 
-- `setActiveWidget()` - Set the active widget for drawing
-- `getActiveWidget()` - Get the currently active widget
+### setActiveWidget
+
+Set the currently active widget for drawing operations. In Next-Gen API, drawing functions operate on the active widget.
+
+**Next-Gen API:**
+```lua
+setActiveWidget(widgetId)
+-- or
+setActiveWidget(widgetInstance)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widget | string or Widget | Yes | Widget ID or widget instance |
+
+**Example:**
+```lua
+local widget1 = createWidget({ type = "canvas", x = 10, y = 10, width = 200, height = 200 })
+local widget2 = createWidget({ type = "canvas", x = 220, y = 10, width = 200, height = 200 })
+
+-- Draw on widget1
+setActiveWidget(widget1)
+drawRect(0, 0, 200, 200, "#ff0000")
+
+-- Draw on widget2
+setActiveWidget(widget2)
+drawRect(0, 0, 200, 200, "#00ff00")
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:553-574`
+
+---
+
+### getActiveWidget
+
+Get the currently active widget.
+
+**Next-Gen API:**
+```lua
+local widget = getActiveWidget()
+```
+
+**Returns:** Widget instance or `nil`
+
+**Source:** `core/next-gen-plugin-runtime.ts:576`
+
+---
+
+## Widget Events
+
+### registerWidgetEvent
+
+Register a callback function for widget events (mouse, keyboard, resize, etc.).
+
+**API:**
+```lua
+registerWidgetEvent(widgetId, eventType, callback)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | The widget ID |
+| eventType | string | Yes | Event type (see table below) |
+| callback | function | Yes | Function to call when event fires |
+
+**Event Types:**
+
+| Event | Callback Parameters | Description |
+|-------|-------------------|-------------|
+| click | {x, y, button} | Mouse click |
+| mousedown | {x, y, button} | Mouse button pressed |
+| mouseup | {x, y, button} | Mouse button released |
+| mousemove | {x, y} | Mouse moved over widget |
+| mouseenter | {} | Mouse entered widget |
+| mouseleave | {} | Mouse left widget |
+| wheel | {deltaX, deltaY} | Mouse wheel scrolled |
+| resize | {width, height} | Widget was resized |
+| keydown | {key, code, shift, ctrl, alt} | Key pressed |
+| keyup | {key, code, shift, ctrl, alt} | Key released |
+
+**Example:**
+```lua
+-- Handle mouse clicks
+registerWidgetEvent(mapWidget, "click", function(data)
+  print("Clicked at: " .. data.x .. ", " .. data.y)
+  print("Button: " .. data.button) -- 1=left, 2=middle, 3=right
+
+  -- Draw a marker at click position
+  drawCircle(data.x, data.y, 5, "#ff0000")
+end)
+
+-- Handle mouse movement
+registerWidgetEvent(mapWidget, "mousemove", function(data)
+  -- data.x and data.y are relative to the widget
+  updateCrosshair(data.x, data.y)
+end)
+
+-- Handle resize
+registerWidgetEvent(mapWidget, "resize", function(data)
+  print("New size: " .. data.width .. "x" .. data.height)
+  redrawMap()
+end)
+
+-- Handle keyboard
+registerWidgetEvent(mapWidget, "keydown", function(data)
+  if data.key == "ArrowUp" then
+    scrollMap(0, -10)
+  elseif data.key == "ArrowDown" then
+    scrollMap(0, 10)
+  end
+end)
+```
+
+**Source:** `types/plugin.ts:137`, `core/next-gen-plugin-runtime.ts:1602-1658`
+
+---
+
+### unregisterWidgetEvent
+
+Remove a widget event handler.
+
+**API:**
+```lua
+unregisterWidgetEvent(widgetId, eventType, callback?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | The widget ID |
+| eventType | string | Yes | Event type to unregister |
+| callback | function | No | Specific callback to remove (or all if omitted) |
+
+**Example:**
+```lua
+-- Remove specific callback
+unregisterWidgetEvent(mapWidget, "click", myClickHandler)
+
+-- Remove all click handlers
+unregisterWidgetEvent(mapWidget, "click")
+```
+
+**Source:** `types/plugin.ts:138`, `core/next-gen-plugin-runtime.ts:1660-1702`
+
+---
+
+## Text Widget Functions
+
+These functions are for "enhanced-text" type widgets that display scrollable, selectable text.
+
+### textWidgetAddLine
+
+Add a line of text to a text widget.
+
+**Legacy API:**
+```lua
+textWidgetAddLine(widgetId, text, color?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| widgetId | string | Yes | - | Text widget ID |
+| text | string | Yes | - | Text to add |
+| color | string | No | "#ffffff" | Text color |
+
+**Example:**
+```lua
+local logWidget = createWidget({
+  type = "enhanced-text",
+  title = "Combat Log",
+  x = 10, y = 10,
+  width = 300, height = 200
+})
+
+textWidgetAddLine(logWidget, "Combat started!", "#ff0000")
+textWidgetAddLine(logWidget, "You hit the goblin for 15 damage.", "#00ff00")
+textWidgetAddLine(logWidget, "The goblin misses you.", "#cccccc")
+```
+
+**Source:** `types/plugin.ts:125`
+
+---
+
+### textWidgetAddButton
+
+Add a clickable button to a text widget.
+
+**Legacy API:**
+```lua
+textWidgetAddButton(widgetId, buttonId, text, callback)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | Text widget ID |
+| buttonId | string | Yes | Unique ID for this button |
+| text | string | Yes | Button label text |
+| callback | function | Yes | Function called when clicked |
+
+**Example:**
+```lua
+textWidgetAddButton(logWidget, "clear_btn", "Clear Log", function()
+  textWidgetClear(logWidget)
+end)
+
+textWidgetAddButton(logWidget, "attack_btn", "Attack!", function()
+  send("attack goblin")
+end)
+```
+
+**Source:** `types/plugin.ts:126`
+
+---
+
+### textWidgetClear
+
+Clear all content from a text widget.
+
+**Legacy API:**
+```lua
+textWidgetClear(widgetId)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | Text widget ID |
+
+**Example:**
+```lua
+textWidgetClear(logWidget)
+```
+
+**Source:** `types/plugin.ts:127`
+
+---
+
+### textWidgetSetSelectable
+
+Enable or disable text selection in a text widget.
+
+**Legacy API:**
+```lua
+textWidgetSetSelectable(widgetId, selectable)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | Text widget ID |
+| selectable | boolean | Yes | Whether text can be selected |
+
+**Example:**
+```lua
+-- Allow users to copy text from the widget
+textWidgetSetSelectable(logWidget, true)
+```
+
+**Source:** `types/plugin.ts:128`
+
+---
+
+### textWidgetSetTransparent
+
+Set whether a text widget has a transparent background.
+
+**Legacy API:**
+```lua
+textWidgetSetTransparent(widgetId, transparent)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | Text widget ID |
+| transparent | boolean | Yes | Whether background is transparent |
+
+**Example:**
+```lua
+-- Make widget overlay without blocking view
+textWidgetSetTransparent(logWidget, true)
+```
+
+**Source:** `types/plugin.ts:129`
+
+---
+
+## Complete Widget Example
+
+```lua
+-- Complete widget management example
+local plugin = {}
+
+local mapWidget = nil
+local statsWidget = nil
+
+function plugin.onLoad()
+  -- Create main map canvas
+  mapWidget = createWidget({
+    type = "canvas",
+    title = "World Map",
+    x = 100,
+    y = 100,
+    width = 400,
+    height = 300,
+    resizable = true
+  })
+
+  -- Create stats text widget
+  statsWidget = createWidget({
+    type = "enhanced-text",
+    title = "Character Stats",
+    x = 510,
+    y = 100,
+    width = 200,
+    height = 300
+  })
+
+  -- Set up map for drawing
+  setActiveWidget(mapWidget)
+  drawRect(0, 0, 400, 300, "#0a0a1a")
+  drawText("Loading map...", 150, 150, "#666666")
+
+  -- Register click handler
+  registerWidgetEvent(mapWidget, "click", function(data)
+    handleMapClick(data.x, data.y)
+  end)
+
+  -- Register resize handler to redraw
+  registerWidgetEvent(mapWidget, "resize", function(data)
+    redrawMap(data.width, data.height)
+  end)
+
+  -- Populate stats
+  updateStats()
+end
+
+function handleMapClick(x, y)
+  setActiveWidget(mapWidget)
+  -- Draw click marker
+  drawCircle(x, y, 3, "#ffff00")
+  print("Map clicked at: " .. x .. ", " .. y)
+end
+
+function redrawMap(width, height)
+  setActiveWidget(mapWidget)
+  clear()
+  drawRect(0, 0, width, height, "#0a0a1a")
+  drawText("Map (" .. width .. "x" .. height .. ")", 10, 20, "#ffffff")
+end
+
+function updateStats()
+  textWidgetClear(statsWidget)
+  textWidgetAddLine(statsWidget, "=== Character ===", "#ffff00")
+  textWidgetAddLine(statsWidget, "HP: 100/100", "#00ff00")
+  textWidgetAddLine(statsWidget, "MP: 50/50", "#0066ff")
+  textWidgetAddLine(statsWidget, "")
+  textWidgetAddButton(statsWidget, "refresh", "Refresh", function()
+    updateStats()
+  end)
+end
+
+function plugin.onUnload()
+  -- Clean up widgets
+  if mapWidget then
+    destroyWidget(mapWidget)
+  end
+  if statsWidget then
+    destroyWidget(statsWidget)
+  end
+end
+
+return plugin
+```
