@@ -1,0 +1,42 @@
+# API Reference
+
+This section contains the complete API reference for MudForge plugin development.
+
+All functions documented here have been verified against the actual source code in `types/plugin.ts` and the runtime implementations.
+
+## Categories
+
+- **[Drawing Functions](/docs/api-reference/drawing-functions)** - Shapes, gradients, canvas operations
+- **[Text Functions](/docs/api-reference/text-functions)** - Text rendering, fonts, ANSI colors
+- **[Image Functions](/docs/api-reference/image-functions)** - Image loading and rendering
+- **[Widget Functions](/docs/api-reference/widget-functions)** - Widget lifecycle and management
+- **[MUD Interaction](/docs/api-reference/mud-functions)** - Sending commands, echoing text
+- **[Triggers, Aliases & Timers](/docs/api-reference/trigger-alias-timer)** - Automation
+- **[Variables & Persistence](/docs/api-reference/variable-persistence)** - Data storage
+- **[Protocol Functions](/docs/api-reference/protocol-functions)** - GMCP and MSDP access
+- **[Multi-Session Functions](/docs/api-reference/session-functions)** - Cross-session operations
+- **[Utility Functions](/docs/api-reference/utility-functions)** - Helpers and utilities
+- **[Lua Standard Libraries](/docs/api-reference/lua-libraries)** - table, math, string, os, io
+
+## Engine Types
+
+MudForge supports two plugin engine types:
+
+### Next-Gen Engine (Recommended)
+```lua
+settings = {
+  engineType = "next-gen"
+}
+```
+- Clean global API without widget ID prefixes
+- Uses `setActiveWidget()` to target widgets
+- Better performance
+
+### Legacy Engine
+```lua
+settings = {
+  engineType = "legacy"  -- or omit for default
+}
+```
+- Widget ID as first parameter in drawing functions
+- MUSHclient-compatible API style

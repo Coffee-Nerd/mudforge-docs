@@ -1,0 +1,47 @@
+# Introduction
+
+MudForge plugins extend the functionality of the MUD client using Lua scripting.
+
+## What Can Plugins Do?
+
+- **Create Custom Widgets** - Canvas for graphics, HTML for rich content, text for simple display
+- **Draw Graphics** - Shapes, text, images with full canvas API
+- **React to MUD Output** - Triggers match patterns in MUD text
+- **Create Shortcuts** - Aliases transform commands before sending
+- **Schedule Actions** - Timers run code periodically or after delays
+- **Store Data** - Variables and tables persist across sessions
+- **Access Protocols** - GMCP and MSDP data from the MUD server
+- **Multi-Session** - Communicate between multiple MUD connections
+
+## Engine Types
+
+MudForge supports two plugin engine types:
+
+### Next-Gen Engine (Recommended)
+
+```lua
+settings = {
+  engineType = "next-gen"
+}
+```
+
+The Next-Gen engine provides a cleaner API:
+- Drawing functions don't require widget ID as first parameter
+- Uses `setActiveWidget()` to target a widget for drawing
+- Better performance
+
+### Legacy Engine
+
+```lua
+settings = {
+  engineType = "legacy"  -- or omit
+}
+```
+
+The Legacy engine maintains compatibility with older plugins:
+- Widget ID is first parameter in drawing functions
+- MUSHclient-style API
+
+## Getting Started
+
+See [Plugin Structure](/docs/plugin-development/plugin-structure) for how to create your first plugin.

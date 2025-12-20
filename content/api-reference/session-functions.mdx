@@ -1,0 +1,42 @@
+# Multi-Session Functions
+
+Functions for working with multiple MUD connections.
+
+> This page will be populated with verified API documentation from the source code.
+
+## Session Information
+
+- `getSession()` - Get current session info
+- `getSessionId()` - Get current session ID
+- `getAllSessions()` - Get all sessions
+- `getSessionById()` - Get session by ID
+- `getSessionByName()` - Get session by name
+- `isActiveSession()` - Check if current session is active
+
+## Cross-Session Commands
+
+- `sendToSession()` - Send command to named session
+- `sendToSessionId()` - Send command to session by ID
+- `sendToAll()` - Send command to all sessions
+- `sendToOthers()` - Send command to all except current
+
+## Cross-Session Variables
+
+- `getSessionVariable()` - Get variable from another session
+- `setSessionVariable()` - Set variable in another session
+- `getAllSessionVariables()` - Get variable from all sessions
+
+## Cross-Session Events
+
+- `onGlobal()` - Subscribe to global events
+- `broadcast()` - Broadcast event to all sessions
+- `emitToSession()` - Send event to specific session
+
+## Cross-Session GMCP
+
+- `getSessionGMCP()` - Get GMCP from another session
+- `getAllSessionGMCP()` - Get GMCP from all sessions
+
+## Session Switching
+
+- `switchToSession()` - Switch to another session

@@ -1,0 +1,117 @@
+# Plugin Structure
+
+Every MudForge plugin follows a standard structure.
+
+## Required Elements
+
+### Settings Table
+
+Every plugin must define a `settings` table:
+
+```lua
+settings = {
+  name = "My Plugin",
+  version = "1.0.0",
+  author = "Your Name",
+  description = "What this plugin does",
+  engineType = "next-gen"  -- or "legacy"
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| name | Yes | Plugin display name |
+| version | Yes | Semantic version (x.y.z) |
+| author | No | Author name |
+| description | No | Brief description |
+| engineType | No | "next-gen" or "legacy" (default: "legacy") |
+
+### Initialize Function
+
+The `initialize()` function runs when the plugin loads:
+
+```lua
+function initialize()
+  -- Set up widgets, triggers, timers, etc.
+  echo("Plugin loaded!")
+end
+```
+
+### Shutdown Function
+
+The `shutdown()` function runs when the plugin unloads:
+
+```lua
+function shutdown()
+  -- Clean up resources
+  if myWidget then
+    destroyWidget(myWidget)
+  end
+end
+```
+
+## Complete Example
+
+```lua
+settings = {
+  name = "Health Monitor",
+  version = "1.0.0",
+  author = "Your Name",
+  description = "Displays health bar",
+  engineType = "next-gen"
+}
+
+local widget = nil
+local healthPercent = 100
+
+function initialize()
+  -- Create widget
+  widget = createWidget({
+    type = "canvas",
+    title = "Health",
+    x = 10,
+    y = 10,
+    width = 200,
+    height = 30
+  })
+
+  -- Add trigger for health updates
+  addTrigger("HP: (%d+)/(%d+)", function(match, current, max)
+    healthPercent = (tonumber(current) / tonumber(max)) * 100
+    updateDisplay()
+  end, true)
+
+  updateDisplay()
+end
+
+function updateDisplay()
+  setActiveWidget(widget)
+  clear("#222222")
+
+  -- Background bar
+  drawRect(5, 5, 190, 20, "#333333")
+
+  -- Health bar
+  local barWidth = (healthPercent / 100) * 186
+  local color = healthPercent > 50 and "#00ff00" or
+                healthPercent > 25 and "#ffff00" or "#ff0000"
+  drawRect(7, 7, barWidth, 16, color)
+
+  -- Text
+  drawText(healthPercent .. "%", 85, 18, "#ffffff")
+end
+
+function shutdown()
+  if widget then
+    destroyWidget(widget)
+  end
+end
+```
+
+## Plugin Lifecycle
+
+1. **Load** - Plugin file is parsed, `settings` table is read
+2. **Initialize** - `initialize()` function is called
+3. **Running** - Plugin responds to triggers, timers, events
+4. **Shutdown** - `shutdown()` function is called
+5. **Unload** - Plugin is removed from memory

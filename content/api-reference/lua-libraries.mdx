@@ -1,0 +1,57 @@
+# Lua Standard Libraries
+
+Standard Lua libraries available in the plugin environment.
+
+> This page will be populated with verified API documentation from the source code.
+
+## table
+
+Table manipulation functions.
+
+- `table.concat()` - Concatenate array elements
+- `table.insert()` - Insert element
+- `table.remove()` - Remove element
+- `table.sort()` - Sort table
+- `table.pack()` - Pack arguments into table
+- `table.unpack()` - Unpack table to arguments
+
+## math
+
+Mathematical functions.
+
+- `math.abs()`, `math.floor()`, `math.ceil()`
+- `math.sin()`, `math.cos()`, `math.tan()`
+- `math.random()`, `math.randomseed()`
+- `math.min()`, `math.max()`
+- `math.sqrt()`, `math.pow()`
+- `math.pi`, `math.huge`
+
+## string
+
+String manipulation functions.
+
+- `string.find()` - Find pattern
+- `string.match()` - Match pattern
+- `string.gsub()` - Global substitution
+- `string.format()` - Format string
+- `string.len()` - String length
+- `string.lower()`, `string.upper()`
+- `string.sub()` - Substring
+
+## os (Web-Safe)
+
+Operating system functions (limited in browser).
+
+- `os.clock()` - Get elapsed time
+- `os.date()` - Format date/time
+- `os.time()` - Get timestamp
+- `os.difftime()` - Time difference
+
+## io (localStorage-Based)
+
+File I/O functions (uses localStorage in browser).
+
+- `io.open()` - Open file
+- `io.read()` - Read from input
+- `io.write()` - Write to output
+- `io.close()` - Close file

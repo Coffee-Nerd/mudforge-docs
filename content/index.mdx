@@ -1,0 +1,54 @@
+# MudForge Docs
+
+Welcome to the official documentation for **MudForge Web Client** - a browser-based client for connecting to Multi-User Dungeon (MUD) text-based games.
+
+## What is MudForge?
+
+MudForge is a modern, feature-rich MUD client that runs entirely in your web browser. It supports:
+
+- **Multiple Connections** - Connect to multiple MUD servers simultaneously
+- **Plugin System** - Extend functionality with Lua-based plugins
+- **Custom Widgets** - Create canvas, HTML, and text widgets for custom UI
+- **Automation** - Triggers, aliases, timers, and variables
+- **Protocol Support** - GMCP and MSDP protocol handling
+- **Mobile Support** - Responsive design for desktop and mobile
+
+## Documentation Sections
+
+### [API Reference](/docs/api-reference)
+
+Complete reference for all plugin API functions:
+- Drawing functions (shapes, text, images, gradients)
+- Widget management
+- MUD interaction (send, echo, triggers, aliases)
+- Protocol access (GMCP, MSDP)
+- Multi-session support
+
+### [Plugin Development](/docs/plugin-development)
+
+Learn how to create plugins:
+- Plugin structure and lifecycle
+- Widget creation and management
+- Drawing and graphics
+- Working examples
+
+## Quick Start
+
+```lua
+-- Example plugin: Hello World
+settings = {
+  name = "Hello World",
+  version = "1.0.0",
+  author = "Your Name",
+  description = "A simple hello world plugin",
+  engineType = "next-gen"
+}
+
+function initialize()
+  echo("Hello from MudForge!")
+end
+```
+
+## Source Code Verification
+
+All API documentation in this site has been verified against the actual MudForge source code. Each function includes a reference to its source file for transparency.
