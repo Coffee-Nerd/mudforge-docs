@@ -19,3 +19,8 @@ Thumbs.db
 # Environment
 .env
 .env.local
+
+# Root documentation files (not for git)
+*.md
+!/content/**/*.md
+!/drawing-api/**/*.md
