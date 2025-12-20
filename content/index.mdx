@@ -15,7 +15,7 @@ MudForge is a modern, feature-rich MUD client that runs entirely in your web bro
 
 ## Documentation Sections
 
-### [API Reference](/docs/api-reference)
+### [API Reference](./api-reference)
 
 Complete reference for all plugin API functions:
 - Drawing functions (shapes, text, images, gradients)
@@ -24,7 +24,7 @@ Complete reference for all plugin API functions:
 - Protocol access (GMCP, MSDP)
 - Multi-session support
 
-### [Plugin Development](/docs/plugin-development)
+### [Plugin Development](./plugin-development)
 
 Learn how to create plugins:
 - Plugin structure and lifecycle
@@ -35,16 +35,37 @@ Learn how to create plugins:
 ## Quick Start
 
 ```lua
--- Example plugin: Hello World
-settings = {
-  name = "Hello World",
-  version = "1.0.0",
-  author = "Your Name",
-  description = "A simple hello world plugin"
-}
+-- Hello World Plugin
+print("Hello World loading...")
 
-function initialize()
-  echo("Hello from MudForge!")
+-- Create a simple widget
+local widget = createWidget({
+  type = "canvas",
+  title = "Hello",
+  width = 200,
+  height = 100
+})
+
+local function draw()
+  setActiveWidget(widget)
+  clear("#1a1a2e")
+  drawText("Hello from MudForge!", 20, 50, "#ffffff")
 end
-```
 
+-- Redraw on resize
+registerWidgetEvent(widget, "resize", function(eventData)
+  draw()
+end)
+
+-- Initial draw
+function init()
+  draw()
+end
+
+-- Add a command
+registerCommand("hi", function(args)
+  print("Hello!")
+end, "Say hello")
+
+print("Hello World loaded!")
+```

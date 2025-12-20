@@ -4,66 +4,113 @@ This section contains the complete API reference for MudForge plugin development
 
 ## Categories
 
-- **[Drawing Functions](/docs/api-reference/drawing-functions)** - Shapes, gradients, canvas operations
-- **[Text Functions](/docs/api-reference/text-functions)** - Text rendering, fonts, ANSI colors
-- **[Image Functions](/docs/api-reference/image-functions)** - Image loading and rendering
-- **[Widget Functions](/docs/api-reference/widget-functions)** - Widget lifecycle and management
-- **[MUD Interaction](/docs/api-reference/mud-functions)** - Sending commands, echoing text
-- **[Triggers, Aliases & Timers](/docs/api-reference/trigger-alias-timer)** - Automation
-- **[Variables & Persistence](/docs/api-reference/variable-persistence)** - Data storage
-- **[Protocol Functions](/docs/api-reference/protocol-functions)** - GMCP and MSDP access
-- **[Multi-Session Functions](/docs/api-reference/session-functions)** - Cross-session operations
-- **[Utility Functions](/docs/api-reference/utility-functions)** - Helpers and utilities
-- **[Lua Standard Libraries](/docs/api-reference/lua-libraries)** - table, math, string, os, io
+- **[Drawing Functions](./drawing-functions)** - Shapes, gradients, canvas operations
+- **[Text Functions](./text-functions)** - Text rendering, fonts, ANSI colors
+- **[Image Functions](./image-functions)** - Image loading and rendering
+- **[Widget Functions](./widget-functions)** - Widget lifecycle and management
+- **[MUD Interaction](./mud-functions)** - Sending commands, echoing text
+- **[Triggers, Aliases & Timers](./trigger-alias-timer)** - Automation
+- **[Variables & Persistence](./variable-persistence)** - Data storage
+- **[Protocol Functions](./protocol-functions)** - GMCP and MSDP access
+- **[Multi-Session Functions](./session-functions)** - Cross-session operations
+- **[Utility Functions](./utility-functions)** - Helpers and utilities
+- **[Lua Standard Libraries](./lua-libraries)** - table, math, string, os, io
 
 ## Getting Started
 
-To use the plugin API, create a Lua file in the plugins directory:
+Create a `.lua` file in your plugins directory. Here's a complete working example:
 
 ```lua
-local plugin = {}
+-- Health Monitor Plugin
+print("Health Monitor loading...")
 
-function plugin.onLoad()
-  -- Plugin initialization code
-  echo("Plugin loaded!", "#00ff00")
-end
+local widget = nil
+local currentHP = 100
+local maxHP = 100
 
-function plugin.onUnload()
-  -- Cleanup code
-end
-
-return plugin
-```
-
-### Drawing on Widgets
-
-Canvas widgets automatically become active when created. Just create and draw:
-
-```lua
-local myWidget = createWidget({
+-- Create the widget
+widget = createWidget({
   type = "canvas",
-  title = "My Widget",
-  width = 400,
-  height = 300
+  title = "Health",
+  x = 10, y = 10,
+  width = 200, height = 40
 })
 
--- Draw immediately - widget is already active!
-drawRect(0, 0, 400, 300, "#1a1a2e")
-drawText("Hello World!", 10, 20, "#ffffff")
-```
+-- Update display function
+local function updateDisplay()
+  setActiveWidget(widget)
+  clear("#222222")
 
-Use `setActiveWidget()` only when switching between multiple widgets.
+  -- Background bar
+  drawRect(5, 10, 190, 20, "#333333")
 
-### Responding to MUD Output
+  -- Health bar (color changes based on health)
+  local pct = currentHP / maxHP
+  local barWidth = 186 * pct
+  local color = "#00ff00"
+  if pct <= 0.25 then
+    color = "#ff0000"
+  elseif pct <= 0.5 then
+    color = "#ffff00"
+  end
+  drawRect(7, 12, barWidth, 16, color)
 
-Use triggers to react to text from the MUD:
+  -- Text overlay
+  drawText(currentHP .. "/" .. maxHP, 80, 25, "#ffffff")
+end
 
-```lua
-addTrigger("HP: (\\d+)/(\\d+)", function(line, matches)
-  local hp = tonumber(matches[1])
-  local maxHp = tonumber(matches[2])
-  if hp < maxHp * 0.3 then
+-- Redraw on resize
+registerWidgetEvent(widget, "resize", function(eventData)
+  updateDisplay()
+end)
+
+-- Initial draw after canvas is ready
+function init()
+  updateDisplay()
+end
+
+-- Watch for health changes from MUD
+addTrigger("HP:\\s*(\\d+)/(\\d+)", function(line, matches)
+  currentHP = tonumber(matches[1])
+  maxHP = tonumber(matches[2])
+  updateDisplay()
+
+  -- Auto-heal when low
+  if currentHP < maxHP * 0.3 then
     send("drink healing potion")
+    print("Auto-healing!")
   end
 end, { type = "regex" })
+
+-- Commands for testing
+registerCommand("hp", function(args)
+  print("Health: " .. currentHP .. "/" .. maxHP)
+end, "Show current health")
+
+registerCommand("sethp", function(args)
+  if args and args[1] then
+    local hp, max = string.match(args[1], "(%d+)/(%d+)")
+    if hp and max then
+      currentHP = tonumber(hp)
+      maxHP = tonumber(max)
+      updateDisplay()
+      print("Health set to " .. currentHP .. "/" .. maxHP)
+    else
+      print("Usage: sethp 50/100")
+    end
+  else
+    print("Usage: sethp 50/100")
+  end
+end, "Set health for testing")
+
+print("Health Monitor loaded! Commands: /hp, /sethp 50/100")
 ```
+
+This example shows:
+- **Widget creation** - Canvas widget for custom graphics
+- **init()** - Initial drawing after canvas is ready
+- **Resize handling** - Redraw when widget is resized
+- **Triggers** - Regex pattern matching MUD output
+- **Drawing** - Rectangles and text on the canvas
+- **Commands** - Custom `/hp` and `/sethp` commands
+- **Auto-actions** - Sending commands based on game state

@@ -1,119 +1,208 @@
 # Plugin Structure
 
-Every MudForge plugin follows a standard structure.
+MudForge plugins are simple Lua scripts that run their code at the top level.
 
-## Required Elements
+## Basic Structure
 
-### Settings Table
-
-Every plugin must define a `settings` table:
+Plugin code executes immediately when loaded:
 
 ```lua
-settings = {
-  name = "My Plugin",
-  version = "1.0.0",
-  author = "Your Name",
-  description = "What this plugin does"
-}
-```
+-- Plugin code runs at top level
+print("My Plugin loading...")
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| name | Yes | Plugin display name |
-| version | Yes | Semantic version (x.y.z) |
-| author | No | Author name |
-| description | No | Brief description |
+-- Create widgets, add triggers, register commands
+local widget = createWidget({
+  type = "canvas",
+  title = "My Widget",
+  width = 200,
+  height = 100
+})
 
-### Initialize Function
-
-The `initialize()` function runs when the plugin loads:
-
-```lua
-function initialize()
-  -- Set up widgets, triggers, timers, etc.
-  echo("Plugin loaded!")
+-- Define your drawing function
+local function draw()
+  setActiveWidget(widget)
+  clear("#1a1a2e")
+  drawText("Hello!", 10, 20, "#ffffff")
 end
+
+-- Redraw on resize
+registerWidgetEvent(widget, "resize", function(eventData)
+  draw()
+end)
+
+-- init() runs after canvas is ready
+function init()
+  draw()
+end
+
+-- Register commands
+registerCommand("mycommand", function(args)
+  print("Command executed!")
+end, "Description of my command")
+
+print("My Plugin loaded!")
 ```
 
-### Shutdown Function
+## The init() Function
 
-The `shutdown()` function runs when the plugin unloads:
+The `init()` function is called **after** the canvas is ready for drawing. Use it for initial rendering:
 
 ```lua
-function shutdown()
-  -- Clean up resources
-  if myWidget then
-    destroyWidget(myWidget)
-  end
+local widget = createWidget({
+  type = "canvas",
+  title = "My Canvas",
+  width = 300,
+  height = 200
+})
+
+local function draw()
+  setActiveWidget(widget)
+  clear("#222222")
+  drawRect(10, 10, 280, 180, "#4a4a6a")
+  drawText("Canvas Ready!", 100, 100, "#ffffff")
+end
+
+-- Redraw on resize
+registerWidgetEvent(widget, "resize", function(eventData)
+  draw()
+end)
+
+-- Initial draw after canvas is ready
+function init()
+  draw()
 end
 ```
 
 ## Complete Example
 
+Here's a working health monitor plugin:
+
 ```lua
-settings = {
-  name = "Health Monitor",
-  version = "1.0.0",
-  author = "Your Name",
-  description = "Displays health bar"
-}
+-- Health Monitor Plugin
+print("Health Monitor loading...")
 
+-- State
 local widget = nil
-local healthPercent = 100
+local currentHP = 100
+local maxHP = 100
 
-function initialize()
-  -- Create widget
-  widget = createWidget({
-    type = "canvas",
-    title = "Health",
-    x = 10,
-    y = 10,
-    width = 200,
-    height = 30
-  })
+-- Create the widget
+widget = createWidget({
+  type = "canvas",
+  title = "Health",
+  x = 10, y = 10,
+  width = 200, height = 40
+})
 
-  -- Add trigger for health updates
-  addTrigger("HP: (\\d+)/(\\d+)", function(line, matches)
-    local current = tonumber(matches[1])
-    local max = tonumber(matches[2])
-    healthPercent = (current / max) * 100
-    updateDisplay()
-  end, { type = "regex" })
-
-  updateDisplay()
-end
-
-function updateDisplay()
+-- Update display function
+local function updateDisplay()
   setActiveWidget(widget)
   clear("#222222")
 
   -- Background bar
-  drawRect(5, 5, 190, 20, "#333333")
+  drawRect(5, 10, 190, 20, "#333333")
 
-  -- Health bar
-  local barWidth = (healthPercent / 100) * 186
-  local color = healthPercent > 50 and "#00ff00" or
-                healthPercent > 25 and "#ffff00" or "#ff0000"
-  drawRect(7, 7, barWidth, 16, color)
-
-  -- Text
-  drawText(healthPercent .. "%", 85, 18, "#ffffff")
-end
-
-function shutdown()
-  if widget then
-    destroyWidget(widget)
+  -- Health bar (color based on percentage)
+  local pct = currentHP / maxHP
+  local barWidth = 186 * pct
+  local color = "#00ff00"
+  if pct <= 0.25 then
+    color = "#ff0000"
+  elseif pct <= 0.5 then
+    color = "#ffff00"
   end
+  drawRect(7, 12, barWidth, 16, color)
+
+  -- Text overlay
+  drawText(currentHP .. "/" .. maxHP, 80, 25, "#ffffff")
 end
+
+-- Redraw on resize
+registerWidgetEvent(widget, "resize", function(eventData)
+  updateDisplay()
+end)
+
+-- Initial draw
+function init()
+  updateDisplay()
+end
+
+-- Watch for health changes from MUD
+addTrigger("HP:\\s*(\\d+)/(\\d+)", function(line, matches)
+  currentHP = tonumber(matches[1])
+  maxHP = tonumber(matches[2])
+  updateDisplay()
+
+  -- Auto-heal when low
+  if currentHP < maxHP * 0.3 then
+    send("drink healing potion")
+    print("Auto-healing!")
+  end
+end, { type = "regex" })
+
+-- Commands
+registerCommand("hp", function(args)
+  print("Health: " .. currentHP .. "/" .. maxHP)
+end, "Show current health")
+
+registerCommand("sethp", function(args)
+  if args and args[1] then
+    local hp, max = string.match(args[1], "(%d+)/(%d+)")
+    if hp and max then
+      currentHP = tonumber(hp)
+      maxHP = tonumber(max)
+      updateDisplay()
+      print("Health set to " .. currentHP .. "/" .. maxHP)
+    else
+      print("Usage: sethp 50/100")
+    end
+  else
+    print("Usage: sethp 50/100")
+  end
+end, "Set health for testing")
+
+print("Health Monitor loaded!")
 ```
 
-## Plugin Lifecycle
+## Cleanup
 
-1. **Load** - Plugin file is parsed, `settings` table is read
-2. **Initialize** - `initialize()` function is called
-3. **Running** - Plugin responds to triggers, timers, events
-4. **Shutdown** - `shutdown()` function is called
-5. **Unload** - Plugin is removed from memory
+MudForge automatically cleans up when plugins are unloaded:
+- Widgets are destroyed
+- Timers are cancelled
+- Event listeners are removed
+- GMCP/MSDP subscriptions are cleared
+
+You don't need to write cleanup code - it's handled for you.
+
+## registerCommand Details
+
+The `registerCommand` function takes three parameters:
+
+```lua
+registerCommand(name, handler, description)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| name | string | Command name (without leading slash) |
+| handler | function | Callback receiving `args` table |
+| description | string | Help text shown in command list |
+
+The `args` parameter is a table (array) of space-separated arguments:
+
+```lua
+registerCommand("greet", function(args)
+  local name = args[1] or "stranger"
+  local times = tonumber(args[2]) or 1
+
+  for i = 1, times do
+    print("Hello, " .. name .. "!")
+  end
+end, "Greet someone: /greet [name] [times]")
+
+-- /greet Bob 3
+-- args = { "Bob", "3" }
+```
 
 ## File Location
 
@@ -121,14 +210,15 @@ Place plugin files in the `plugins/` directory:
 
 ```
 plugins/
-  my-plugin.lua
   health-monitor.lua
   combat-tracker.lua
+  mapper.lua
 ```
 
 ## Best Practices
 
-1. **Always clean up** - Destroy widgets and remove timers in `shutdown()`
-2. **Use local variables** - Keep plugin state local to avoid conflicts
-3. **Handle errors** - Use pcall for operations that might fail
-4. **Document your plugin** - Add a description in settings
+1. **Use local variables** - Keep state local to avoid conflicts between plugins
+2. **Print loading messages** - Help users know when plugins load
+3. **Add useful commands** - Use `registerCommand` for user interaction
+4. **Handle resize** - Use `registerWidgetEvent(widget, "resize", ...)` to redraw on resize
+5. **Use init() for drawing** - Initial canvas drawing should happen in `init()`

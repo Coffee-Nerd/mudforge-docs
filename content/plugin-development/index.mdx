@@ -16,43 +16,48 @@ Plugins are written in Lua and can:
 ## Quick Example
 
 ```lua
-settings = {
-  name = "My First Plugin",
-  version = "1.0.0",
-  author = "Your Name",
-  description = "A simple example plugin"
-}
+-- My First Plugin
+print("My Plugin loading...")
 
-local myWidget = nil
+-- Create a canvas widget
+local myWidget = createWidget({
+  type = "canvas",
+  title = "My Widget",
+  x = 100,
+  y = 100,
+  width = 200,
+  height = 150
+})
 
-function initialize()
-  -- Create a canvas widget
-  myWidget = createWidget({
-    type = "canvas",
-    title = "My Widget",
-    x = 100,
-    y = 100,
-    width = 200,
-    height = 150
-  })
-
-  -- Draw on it (canvas widgets are automatically active when created)
+-- Drawing function
+local function draw()
+  setActiveWidget(myWidget)
   clear("#1a1a2e")
   drawRect(10, 10, 180, 130, "#4a4a6a")
   drawText("Hello MudForge!", 20, 50, "#ffffff")
-
-  echo("Plugin initialized!")
 end
 
-function shutdown()
-  if myWidget then
-    destroyWidget(myWidget)
-  end
+-- Redraw on resize
+registerWidgetEvent(myWidget, "resize", function(eventData)
+  draw()
+end)
+
+-- Initial draw after canvas is ready
+function init()
+  draw()
 end
+
+-- Add a command
+registerCommand("hello", function(args)
+  local name = args[1] or "world"
+  print("Hello, " .. name .. "!")
+end, "Say hello")
+
+print("Plugin loaded!")
 ```
 
 ## Sections
 
-- **[Introduction](/docs/plugin-development/introduction)** - Overview and concepts
-- **[Plugin Structure](/docs/plugin-development/plugin-structure)** - Required settings and lifecycle
-- **[Examples](/docs/plugin-development/examples)** - Working plugin examples
+- **[Introduction](./introduction)** - Overview and concepts
+- **[Plugin Structure](./plugin-structure)** - Plugin lifecycle and patterns
+- **[Examples](./examples)** - Working plugin examples

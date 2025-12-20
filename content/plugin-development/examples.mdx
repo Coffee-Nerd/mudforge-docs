@@ -4,21 +4,19 @@ Working plugin examples to learn from.
 
 ## Simple Echo Plugin
 
-The simplest possible plugin:
+The simplest possible plugin (no canvas):
 
 ```lua
-settings = {
-  name = "Echo Plugin",
-  version = "1.0.0",
-}
+-- Echo Plugin
+print("Echo Plugin loading...")
 
-function initialize()
-  echo("Hello from Echo Plugin!")
+echo("Hello from Echo Plugin!")
 
-  addAlias("^/greet (.+)$", function(match, name)
-    send("say Hello, " .. name .. "!")
-  end, true)
-end
+addAlias("^/greet (.+)$", function(match, name)
+  send("say Hello, " .. name .. "!")
+end, true)
+
+print("Echo Plugin loaded!")
 ```
 
 ## Canvas Widget
@@ -26,24 +24,20 @@ end
 Drawing shapes on a canvas:
 
 ```lua
-settings = {
-  name = "Canvas Demo",
-  version = "1.0.0",
-}
+-- Canvas Demo
+print("Canvas Demo loading...")
 
-local widget = nil
+local widget = createWidget({
+  type = "canvas",
+  title = "Shapes",
+  x = 100,
+  y = 100,
+  width = 300,
+  height = 200
+})
 
-function initialize()
-  widget = createWidget({
-    type = "canvas",
-    title = "Shapes",
-    x = 100,
-    y = 100,
-    width = 300,
-    height = 200
-  })
-
-  -- Draw on the canvas (automatically active after createWidget)
+local function draw()
+  setActiveWidget(widget)
   clear("#1a1a2e")
 
   -- Draw various shapes
@@ -53,11 +47,17 @@ function initialize()
   drawText("Hello World!", 100, 180, "#ffffff", "16px Arial")
 end
 
-function shutdown()
-  if widget then
-    destroyWidget(widget)
-  end
+-- Redraw on resize
+registerWidgetEvent(widget, "resize", function(eventData)
+  draw()
+end)
+
+-- Initial draw
+function init()
+  draw()
 end
+
+print("Canvas Demo loaded!")
 ```
 
 ## Trigger with Capture Groups
@@ -65,25 +65,23 @@ end
 Capturing data from MUD output:
 
 ```lua
-settings = {
-  name = "Combat Logger",
-  version = "1.0.0",
-}
+-- Combat Logger
+print("Combat Logger loading...")
 
 local kills = 0
 
-function initialize()
-  -- Trigger with regex capture groups
-  addTrigger("You have slain (.+)!", function(match, target)
-    kills = kills + 1
-    echo("[Combat] Killed: " .. target .. " (Total: " .. kills .. ")")
-  end, true)
+-- Trigger with regex capture groups
+addTrigger("You have slain (.+)!", function(match, target)
+  kills = kills + 1
+  echo("[Combat] Killed: " .. target .. " (Total: " .. kills .. ")")
+end, true)
 
-  -- Alias to check stats
-  addAlias("^/kills$", function()
-    echo("Total kills this session: " .. kills)
-  end, true)
-end
+-- Alias to check stats
+addAlias("^/kills$", function()
+  echo("Total kills this session: " .. kills)
+end, true)
+
+print("Combat Logger loaded!")
 ```
 
 ## Timer Example
@@ -91,40 +89,32 @@ end
 Periodic actions:
 
 ```lua
-settings = {
-  name = "Auto-Heal",
-  version = "1.0.0",
-}
+-- Auto-Heal Plugin
+print("Auto-Heal loading...")
 
 local healTimer = nil
 local isHurt = false
 
-function initialize()
-  -- Check health periodically
-  healTimer = addTimer(5000, function()
-    if isHurt then
-      send("cast heal self")
-    end
-  end, true)  -- true = repeating
-
-  -- Track when we get hurt
-  addTrigger("You are wounded!", function()
-    isHurt = true
-    echo("[Auto-Heal] Activating healing...")
-  end, false)
-
-  -- Track when we're healed
-  addTrigger("You are fully healed.", function()
-    isHurt = false
-    echo("[Auto-Heal] Healing complete.")
-  end, false)
-end
-
-function shutdown()
-  if healTimer then
-    removeTimer(healTimer)
+-- Check health periodically
+healTimer = addTimer(5000, function()
+  if isHurt then
+    send("cast heal self")
   end
-end
+end, true)  -- true = repeating
+
+-- Track when we get hurt
+addTrigger("You are wounded!", function()
+  isHurt = true
+  echo("[Auto-Heal] Activating healing...")
+end, false)
+
+-- Track when we're healed
+addTrigger("You are fully healed.", function()
+  isHurt = false
+  echo("[Auto-Heal] Healing complete.")
+end, false)
+
+print("Auto-Heal loaded!")
 ```
 
 ## Using GMCP Data
@@ -132,24 +122,22 @@ end
 Accessing protocol data:
 
 ```lua
-settings = {
-  name = "Room Tracker",
-  version = "1.0.0",
-}
+-- Room Tracker
+print("Room Tracker loading...")
 
-function initialize()
-  -- Get current room
-  local room = getCurrentRoom()
-  if room then
-    echo("Current room: " .. (room.name or "Unknown"))
-  end
-
-  -- Subscribe to room changes
-  onGMCPUpdate("Room.Info", function(data)
-    echo("Moved to: " .. (data.name or "Unknown room"))
-    echo("Exits: " .. table.concat(data.exits or {}, ", "))
-  end)
+-- Get current room
+local room = getCurrentRoom()
+if room then
+  echo("Current room: " .. (room.name or "Unknown"))
 end
+
+-- Subscribe to room changes
+onGMCPUpdate("Room.Info", function(data)
+  echo("Moved to: " .. (data.name or "Unknown room"))
+  echo("Exits: " .. table.concat(data.exits or {}, ", "))
+end)
+
+print("Room Tracker loaded!")
 ```
 
 ## Multi-Session Communication
@@ -157,29 +145,27 @@ end
 Sending commands between sessions:
 
 ```lua
-settings = {
-  name = "Session Coordinator",
-  version = "1.0.0",
-}
+-- Session Coordinator
+print("Session Coordinator loading...")
 
-function initialize()
-  -- Command to send to all sessions
-  addAlias("^/all (.+)$", function(match, cmd)
-    sendToAll(cmd)
-    echo("Sent to all sessions: " .. cmd)
-  end, true)
+-- Command to send to all sessions
+addAlias("^/all (.+)$", function(match, cmd)
+  sendToAll(cmd)
+  echo("Sent to all sessions: " .. cmd)
+end, true)
 
-  -- Command to send to specific session
-  addAlias("^/to (%w+) (.+)$", function(match, session, cmd)
-    sendToSession(session, cmd)
-    echo("Sent to " .. session .. ": " .. cmd)
-  end, true)
+-- Command to send to specific session
+addAlias("^/to (%w+) (.+)$", function(match, session, cmd)
+  sendToSession(session, cmd)
+  echo("Sent to " .. session .. ": " .. cmd)
+end, true)
 
-  -- Listen for global events
-  onGlobal("party:heal", function(data)
-    if data.target == getSession().name then
-      send("cast heal " .. data.caster)
-    end
-  end)
-end
+-- Listen for global events
+onGlobal("party:heal", function(data)
+  if data.target == getSession().name then
+    send("cast heal " .. data.caster)
+  end
+end)
+
+print("Session Coordinator loaded!")
 ```
