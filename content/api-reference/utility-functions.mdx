@@ -2,8 +2,6 @@
 
 Helper functions for logging, time operations, color processing, and debugging.
 
-All functions documented here have been verified against the source code in `types/plugin.ts` and `core/plugin-engine.ts`.
-
 ---
 
 ## Logging
@@ -21,7 +19,6 @@ log(message, level?)
 | message | string | Yes | - | The message to log |
 | level | string | No | "info" | Log level: "debug", "info", "warn", "error" |
 
-**Source:** `types/plugin.ts:166`, `core/plugin-engine.ts:1716-1728`
 
 **Example:**
 ```lua
@@ -48,7 +45,6 @@ print(message)
 |-----------|------|----------|-------------|
 | message | string | Yes | The message to print |
 
-**Source:** `types/plugin.ts:171`, `core/next-gen-plugin-runtime.ts:852-854`
 
 **Example:**
 ```lua
@@ -70,7 +66,6 @@ utilprint(message)
 |-----------|------|----------|-------------|
 | message | string | Yes | The message to print |
 
-**Source:** `types/plugin.ts:172`, `core/next-gen-plugin-runtime.ts:856-858`
 
 **Example:**
 ```lua
@@ -94,7 +89,6 @@ tprint(table, indent?, done?)
 | indent | number | No | 0 | Initial indentation level (internal use) |
 | done | set | No | {} | Set of visited tables to prevent cycles (internal use) |
 
-**Source:** `core/next-gen-plugin-runtime.ts:861-893`
 
 **Example:**
 ```lua
@@ -136,7 +130,6 @@ getCurrentTime()
 
 **Returns:** `number` - Current time in milliseconds.
 
-**Source:** `types/plugin.ts:167`, `core/plugin-engine.ts:1731-1737`
 
 **Example:**
 ```lua
@@ -163,7 +156,6 @@ formatTime(timestamp, format?)
 
 **Returns:** `string` - Formatted time string (e.g., "14:30:45").
 
-**Source:** `types/plugin.ts:168`, `core/plugin-engine.ts:1740-1751`
 
 **Example:**
 ```lua
@@ -205,7 +197,6 @@ colorize(text, format?)
 
 **Returns:** Varies based on format - segments array, ANSI string, or plain string.
 
-**Source:** `types/plugin.ts:175`, `core/plugin-engine.ts:2014-2043`
 
 **Example:**
 ```lua
@@ -251,7 +242,6 @@ stripAnsiCodes(text)
 
 **Returns:** `string` - Plain text with all ANSI codes removed.
 
-**Source:** `core/next-gen-plugin-runtime.ts:473-475`
 
 **Example:**
 ```lua
@@ -276,7 +266,6 @@ parseAnsiText(text)
 
 **Returns:** `table` - Array of segments with `{text, color}` properties.
 
-**Source:** `core/next-gen-plugin-runtime.ts:458-466`
 
 **Example:**
 ```lua
@@ -304,7 +293,6 @@ tostring(value)
 
 **Returns:** `string` - String representation of the value.
 
-**Source:** Standard Lua / `core/next-gen-plugin-runtime.ts:2680`
 
 **Example:**
 ```lua
@@ -330,7 +318,6 @@ tonumber(value, base?)
 
 **Returns:** `number | nil` - The numeric value, or `nil` if conversion fails.
 
-**Source:** Standard Lua / `core/next-gen-plugin-runtime.ts:2681`
 
 **Example:**
 ```lua
@@ -356,7 +343,6 @@ type(value)
 
 **Returns:** `string` - Type name: "nil", "number", "string", "boolean", "table", "function".
 
-**Source:** Standard Lua / `core/next-gen-plugin-runtime.ts:2679`
 
 **Example:**
 ```lua

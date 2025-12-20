@@ -2,8 +2,6 @@
 
 Functions for automation: responding to MUD output, creating shortcuts, and timed actions.
 
-All functions documented here have been verified against the source code.
-
 ---
 
 ## Triggers
@@ -14,27 +12,21 @@ Triggers automatically execute code when specific text patterns appear in MUD ou
 
 Add a trigger that fires when text matches a pattern.
 
-**API:**
 ```lua
 local triggerId = addTrigger(pattern, callback, options?)
-```
-
-**Legacy API:**
-```lua
-local triggerId = addTrigger(pattern, callback, isRegex?)
 ```
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | pattern | string | Yes | Pattern to match |
 | callback | function | Yes | Function to call on match |
-| options | table/boolean | No | Options table or legacy isRegex boolean |
+| options | table | No | Options table (see below) |
 
 **Options Table:**
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| type | string | "substring" | Match type: "substring", "regex", "exact" |
+| type | string | "substring" | Match type: "substring", "wildcard", "regex", "exact" |
 | enabled | boolean | true | Whether trigger is active |
 | priority | number | 50 | Trigger priority (lower = higher priority) |
 | oneShot | boolean | false | Remove trigger after first match |
@@ -81,16 +73,21 @@ addTrigger("DANGER:", function()
   send("flee")
 end, { priority = 10 })
 
--- Legacy regex syntax
+-- Wildcard trigger (matches * and ? patterns)
+addTrigger("* gives you *", function(line, matches)
+  local giver = matches[1]
+  local item = matches[2]
+  echo("Received " .. item .. " from " .. giver, "#00ff00")
+end, { type = "wildcard" })
+
+-- Regex HP tracking
 addTrigger("HP: (\\d+)/(\\d+)", function(line, matches)
   local hp = tonumber(matches[1])
   local maxHp = tonumber(matches[2])
   setVariable("hp", hp)
   setVariable("maxhp", maxHp)
-end, true)  -- true = isRegex
+end, { type = "regex" })
 ```
-
-**Source:** `types/plugin.ts:145`, `core/next-gen-plugin-runtime.ts:1458-1485`
 
 ---
 
@@ -98,7 +95,6 @@ end, true)  -- true = isRegex
 
 Remove a trigger by its ID.
 
-**API:**
 ```lua
 removeTrigger(triggerId)
 ```
@@ -117,15 +113,12 @@ end)
 removeTrigger(myTrigger)
 ```
 
-**Source:** `types/plugin.ts:146`, `core/next-gen-plugin-runtime.ts:1487-1490`
-
 ---
 
 ### enableTrigger
 
 Enable a disabled trigger.
 
-**API:**
 ```lua
 enableTrigger(triggerId)
 ```
@@ -139,15 +132,12 @@ enableTrigger(triggerId)
 enableTrigger(combatTrigger)
 ```
 
-**Source:** `core/next-gen-plugin-runtime.ts:1492-1494`
-
 ---
 
 ### disableTrigger
 
 Disable a trigger without removing it.
 
-**API:**
 ```lua
 disableTrigger(triggerId)
 ```
@@ -162,15 +152,12 @@ disableTrigger(triggerId)
 disableTrigger(combatTrigger)
 ```
 
-**Source:** `core/next-gen-plugin-runtime.ts:1496-1498`
-
 ---
 
 ### findTriggerByName
 
 Find a trigger by its name.
 
-**API:**
 ```lua
 local trigger = findTriggerByName(name)
 ```
@@ -181,15 +168,12 @@ local trigger = findTriggerByName(name)
 
 **Returns:** `{id: string, name: string, enabled: boolean}` or `nil`
 
-**Source:** `types/plugin.ts:255`
-
 ---
 
 ### toggleTriggerByName
 
 Enable or disable a trigger by its name.
 
-**API:**
 ```lua
 local success = toggleTriggerByName(name, enabled)
 ```
@@ -201,15 +185,12 @@ local success = toggleTriggerByName(name, enabled)
 
 **Returns:** `boolean` - Whether the operation succeeded
 
-**Source:** `types/plugin.ts:257`
-
 ---
 
 ### toggleTriggerGroup
 
 Enable or disable all triggers in a group.
 
-**API:**
 ```lua
 local success = toggleTriggerGroup(groupName, enabled)
 ```
@@ -234,8 +215,6 @@ toggleTriggerGroup("combat", false)
 toggleTriggerGroup("combat", true)
 ```
 
-**Source:** `types/plugin.ts:259`
-
 ---
 
 ## Aliases
@@ -246,7 +225,6 @@ Aliases intercept user input and transform or execute code based on patterns.
 
 Add an alias that matches user input.
 
-**API:**
 ```lua
 local aliasId = addAlias(pattern, replacement, callback?)
 ```
@@ -273,15 +251,12 @@ addAlias("^heal (.+)$", "", function(matches)
 end)
 ```
 
-**Source:** `types/plugin.ts:147`
-
 ---
 
 ### removeAlias
 
 Remove an alias by its ID.
 
-**API:**
 ```lua
 removeAlias(aliasId)
 ```
@@ -290,15 +265,12 @@ removeAlias(aliasId)
 |-----------|------|----------|-------------|
 | aliasId | string | Yes | The alias ID returned from addAlias |
 
-**Source:** `types/plugin.ts:148`
-
 ---
 
 ### findAliasByName
 
 Find an alias by its name.
 
-**API:**
 ```lua
 local alias = findAliasByName(name)
 ```
@@ -309,15 +281,12 @@ local alias = findAliasByName(name)
 
 **Returns:** `{id: string, name: string, enabled: boolean}` or `nil`
 
-**Source:** `types/plugin.ts:269`
-
 ---
 
 ### toggleAliasByName
 
 Enable or disable an alias by its name.
 
-**API:**
 ```lua
 local success = toggleAliasByName(name, enabled)
 ```
@@ -329,8 +298,6 @@ local success = toggleAliasByName(name, enabled)
 
 **Returns:** `boolean` - Whether the operation succeeded
 
-**Source:** `types/plugin.ts:271`
-
 ---
 
 ## Timers
@@ -341,7 +308,6 @@ Timers execute code after a delay or at regular intervals.
 
 Add a timer that fires after an interval.
 
-**API:**
 ```lua
 local timerId = addTimer(interval, callback, repeating?)
 ```
@@ -371,15 +337,12 @@ addTimer(60000, function()
 end, true)
 ```
 
-**Source:** `types/plugin.ts:151`
-
 ---
 
 ### removeTimer
 
 Remove a timer by its ID.
 
-**API:**
 ```lua
 removeTimer(timerId)
 ```
@@ -396,15 +359,12 @@ local myTimer = addTimer(5000, callback, true)
 removeTimer(myTimer)
 ```
 
-**Source:** `types/plugin.ts:152`
-
 ---
 
 ### findTimerByName
 
 Find a timer by its name.
 
-**API:**
 ```lua
 local timer = findTimerByName(name)
 ```
@@ -415,15 +375,12 @@ local timer = findTimerByName(name)
 
 **Returns:** `{id: string, name: string, enabled: boolean}` or `nil`
 
-**Source:** `types/plugin.ts:263`
-
 ---
 
 ### toggleTimerByName
 
 Enable or disable a timer by its name.
 
-**API:**
 ```lua
 local success = toggleTimerByName(name, enabled)
 ```
@@ -435,8 +392,6 @@ local success = toggleTimerByName(name, enabled)
 
 **Returns:** `boolean` - Whether the operation succeeded
 
-**Source:** `types/plugin.ts:265`
-
 ---
 
 ## JavaScript-Style Timers
@@ -447,7 +402,6 @@ Convenience functions that match JavaScript's timer API.
 
 Execute a function after a delay (one-shot timer).
 
-**API:**
 ```lua
 local timerId = setTimeout(callback, delay)
 ```
@@ -472,15 +426,12 @@ local timerId = setTimeout(function()
 end, 5000)
 ```
 
-**Source:** `core/next-gen-plugin-runtime.ts:1449-1452`
-
 ---
 
 ### clearTimeout
 
 Cancel a timeout before it fires.
 
-**API:**
 ```lua
 clearTimeout(timerId)
 ```
@@ -498,8 +449,6 @@ end, 5000)
 -- Cancel it before it fires
 clearTimeout(timerId)
 ```
-
-**Source:** `core/next-gen-plugin-runtime.ts:1454-1456`
 
 ---
 

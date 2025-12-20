@@ -13,8 +13,7 @@ settings = {
   name = "My Plugin",
   version = "1.0.0",
   author = "Your Name",
-  description = "What this plugin does",
-  engineType = "next-gen"  -- or "legacy"
+  description = "What this plugin does"
 }
 ```
 
@@ -24,7 +23,6 @@ settings = {
 | version | Yes | Semantic version (x.y.z) |
 | author | No | Author name |
 | description | No | Brief description |
-| engineType | No | "next-gen" or "legacy" (default: "legacy") |
 
 ### Initialize Function
 
@@ -57,8 +55,7 @@ settings = {
   name = "Health Monitor",
   version = "1.0.0",
   author = "Your Name",
-  description = "Displays health bar",
-  engineType = "next-gen"
+  description = "Displays health bar"
 }
 
 local widget = nil
@@ -76,10 +73,12 @@ function initialize()
   })
 
   -- Add trigger for health updates
-  addTrigger("HP: (%d+)/(%d+)", function(match, current, max)
-    healthPercent = (tonumber(current) / tonumber(max)) * 100
+  addTrigger("HP: (\\d+)/(\\d+)", function(line, matches)
+    local current = tonumber(matches[1])
+    local max = tonumber(matches[2])
+    healthPercent = (current / max) * 100
     updateDisplay()
-  end, true)
+  end, { type = "regex" })
 
   updateDisplay()
 end
@@ -115,3 +114,21 @@ end
 3. **Running** - Plugin responds to triggers, timers, events
 4. **Shutdown** - `shutdown()` function is called
 5. **Unload** - Plugin is removed from memory
+
+## File Location
+
+Place plugin files in the `plugins/` directory:
+
+```
+plugins/
+  my-plugin.lua
+  health-monitor.lua
+  combat-tracker.lua
+```
+
+## Best Practices
+
+1. **Always clean up** - Destroy widgets and remove timers in `shutdown()`
+2. **Use local variables** - Keep plugin state local to avoid conflicts
+3. **Handle errors** - Use pcall for operations that might fail
+4. **Document your plugin** - Add a description in settings

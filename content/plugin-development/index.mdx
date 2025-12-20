@@ -20,8 +20,7 @@ settings = {
   name = "My First Plugin",
   version = "1.0.0",
   author = "Your Name",
-  description = "A simple example plugin",
-  engineType = "next-gen"
+  description = "A simple example plugin"
 }
 
 local myWidget = nil
@@ -37,10 +36,7 @@ function initialize()
     height = 150
   })
 
-  -- Set it as active for drawing
-  setActiveWidget(myWidget)
-
-  -- Draw something
+  -- Draw on it (canvas widgets are automatically active when created)
   clear("#1a1a2e")
   drawRect(10, 10, 180, 130, "#4a4a6a")
   drawText("Hello MudForge!", 20, 50, "#ffffff")

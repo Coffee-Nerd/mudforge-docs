@@ -2,8 +2,6 @@
 
 Functions for creating, managing, and interacting with plugin widgets.
 
-All functions documented here have been verified against the source code.
-
 ---
 
 ## Widget Lifecycle
@@ -12,12 +10,6 @@ All functions documented here have been verified against the source code.
 
 Create a new widget with the specified configuration.
 
-**Next-Gen API:**
-```lua
-local widgetId = createWidget(config)
-```
-
-**Legacy API:**
 ```lua
 local widgetId = createWidget(config)
 ```
@@ -60,15 +52,12 @@ drawRect(0, 0, 400, 300, "#1a1a1a")
 drawText("Map View", 10, 20, "#ffffff")
 ```
 
-**Source:** `types/plugin.ts:65`, `core/next-gen-plugin-runtime.ts:1544-1596`
-
 ---
 
 ### destroyWidget
 
 Destroy a widget and clean up all its resources and event handlers.
 
-**API:**
 ```lua
 destroyWidget(widgetId)
 ```
@@ -85,15 +74,12 @@ function plugin.onUnload()
 end
 ```
 
-**Source:** `types/plugin.ts:66`, `core/next-gen-plugin-runtime.ts:1745-1762`
-
 ---
 
 ### showWidget
 
 Make a widget visible.
 
-**API:**
 ```lua
 showWidget(widgetId)
 ```
@@ -108,15 +94,12 @@ showWidget(widgetId)
 showWidget(statsWidget)
 ```
 
-**Source:** `types/plugin.ts:67`, `core/next-gen-plugin-runtime.ts:1731-1736`
-
 ---
 
 ### hideWidget
 
 Hide a widget (but don't destroy it).
 
-**API:**
 ```lua
 hideWidget(widgetId)
 ```
@@ -131,8 +114,6 @@ hideWidget(widgetId)
 hideWidget(statsWidget)
 ```
 
-**Source:** `types/plugin.ts:68`, `core/next-gen-plugin-runtime.ts:1738-1743`
-
 ---
 
 ## Widget Manipulation
@@ -141,7 +122,6 @@ hideWidget(statsWidget)
 
 Move a widget to a new position.
 
-**Legacy API:**
 ```lua
 moveWidget(widgetId, x, y)
 ```
@@ -158,15 +138,12 @@ moveWidget(widgetId, x, y)
 moveWidget(statsWidget, 10, 10)
 ```
 
-**Source:** `types/plugin.ts:69`
-
 ---
 
 ### resizeWidget
 
 Resize a widget to new dimensions.
 
-**Legacy API:**
 ```lua
 resizeWidget(widgetId, width, height)
 ```
@@ -183,15 +160,12 @@ resizeWidget(widgetId, width, height)
 resizeWidget(mapWidget, 600, 400)
 ```
 
-**Source:** `types/plugin.ts:70`
-
 ---
 
 ### setWidgetZOrder
 
 Set the z-order (stacking order) of a widget.
 
-**API:**
 ```lua
 setWidgetZOrder(widgetId, zIndex)
 ```
@@ -212,8 +186,6 @@ setWidgetZOrder(popupWidget, 2000)
 setWidgetZOrder(backgroundWidget, 500)
 ```
 
-**Source:** `core/next-gen-plugin-runtime.ts:641-662`
-
 ---
 
 ## Widget Properties
@@ -222,7 +194,6 @@ setWidgetZOrder(backgroundWidget, 500)
 
 Get a property value from a widget.
 
-**API:**
 ```lua
 local value = getWidgetProperty(widgetId, property)
 ```
@@ -240,15 +211,12 @@ local visible = getWidgetProperty(statsWidget, "visible")
 local width = getWidgetProperty(statsWidget, "width")
 ```
 
-**Source:** `types/plugin.ts:71`, `core/next-gen-plugin-runtime.ts:1773-1775`
-
 ---
 
 ### setWidgetProperty
 
 Set a property value on a widget.
 
-**API:**
 ```lua
 setWidgetProperty(widgetId, property, value)
 ```
@@ -265,15 +233,12 @@ setWidgetProperty(statsWidget, "title", "Player Stats")
 setWidgetProperty(statsWidget, "visible", true)
 ```
 
-**Source:** `types/plugin.ts:72`, `core/next-gen-plugin-runtime.ts:1764-1771`
-
 ---
 
 ### widgetInfo
 
-Get detailed information about a widget (similar to MUSHclient's WindowInfo).
+Get detailed information about a widget.
 
-**Next-Gen API:**
 ```lua
 local value = widgetInfo(widgetId, infoType)
 ```
@@ -330,17 +295,16 @@ if currWidth ~= origWidth then
 end
 ```
 
-**Source:** `core/next-gen-plugin-runtime.ts:578-638`
-
 ---
 
 ## Active Widget
 
+Canvas widgets automatically become the active widget when created. You only need `setActiveWidget()` when working with multiple widgets and need to switch between them.
+
 ### setActiveWidget
 
-Set the currently active widget for drawing operations. In Next-Gen API, drawing functions operate on the active widget.
+Switch the active widget for drawing operations. Only needed when you have multiple widgets.
 
-**Next-Gen API:**
 ```lua
 setActiveWidget(widgetId)
 -- or
@@ -353,19 +317,18 @@ setActiveWidget(widgetInstance)
 
 **Example:**
 ```lua
+-- First widget is automatically active after creation
 local widget1 = createWidget({ type = "canvas", x = 10, y = 10, width = 200, height = 200 })
+drawRect(0, 0, 200, 200, "#ff0000")  -- Draws on widget1
+
+-- Create second widget (now widget2 is active)
 local widget2 = createWidget({ type = "canvas", x = 220, y = 10, width = 200, height = 200 })
+drawRect(0, 0, 200, 200, "#00ff00")  -- Draws on widget2
 
--- Draw on widget1
+-- Switch back to widget1
 setActiveWidget(widget1)
-drawRect(0, 0, 200, 200, "#ff0000")
-
--- Draw on widget2
-setActiveWidget(widget2)
-drawRect(0, 0, 200, 200, "#00ff00")
+drawCircle(100, 100, 50, "#0000ff")  -- Draws on widget1
 ```
-
-**Source:** `core/next-gen-plugin-runtime.ts:553-574`
 
 ---
 
@@ -373,14 +336,11 @@ drawRect(0, 0, 200, 200, "#00ff00")
 
 Get the currently active widget.
 
-**Next-Gen API:**
 ```lua
 local widget = getActiveWidget()
 ```
 
 **Returns:** Widget instance or `nil`
-
-**Source:** `core/next-gen-plugin-runtime.ts:576`
 
 ---
 
@@ -390,7 +350,6 @@ local widget = getActiveWidget()
 
 Register a callback function for widget events (mouse, keyboard, resize, etc.).
 
-**API:**
 ```lua
 registerWidgetEvent(widgetId, eventType, callback)
 ```
@@ -449,15 +408,12 @@ registerWidgetEvent(mapWidget, "keydown", function(data)
 end)
 ```
 
-**Source:** `types/plugin.ts:137`, `core/next-gen-plugin-runtime.ts:1602-1658`
-
 ---
 
 ### unregisterWidgetEvent
 
 Remove a widget event handler.
 
-**API:**
 ```lua
 unregisterWidgetEvent(widgetId, eventType, callback?)
 ```
@@ -477,8 +433,6 @@ unregisterWidgetEvent(mapWidget, "click", myClickHandler)
 unregisterWidgetEvent(mapWidget, "click")
 ```
 
-**Source:** `types/plugin.ts:138`, `core/next-gen-plugin-runtime.ts:1660-1702`
-
 ---
 
 ## Text Widget Functions
@@ -489,7 +443,6 @@ These functions are for "enhanced-text" type widgets that display scrollable, se
 
 Add a line of text to a text widget.
 
-**Legacy API:**
 ```lua
 textWidgetAddLine(widgetId, text, color?)
 ```
@@ -514,15 +467,12 @@ textWidgetAddLine(logWidget, "You hit the goblin for 15 damage.", "#00ff00")
 textWidgetAddLine(logWidget, "The goblin misses you.", "#cccccc")
 ```
 
-**Source:** `types/plugin.ts:125`
-
 ---
 
 ### textWidgetAddButton
 
 Add a clickable button to a text widget.
 
-**Legacy API:**
 ```lua
 textWidgetAddButton(widgetId, buttonId, text, callback)
 ```
@@ -545,15 +495,12 @@ textWidgetAddButton(logWidget, "attack_btn", "Attack!", function()
 end)
 ```
 
-**Source:** `types/plugin.ts:126`
-
 ---
 
 ### textWidgetClear
 
 Clear all content from a text widget.
 
-**Legacy API:**
 ```lua
 textWidgetClear(widgetId)
 ```
@@ -567,15 +514,12 @@ textWidgetClear(widgetId)
 textWidgetClear(logWidget)
 ```
 
-**Source:** `types/plugin.ts:127`
-
 ---
 
 ### textWidgetSetSelectable
 
 Enable or disable text selection in a text widget.
 
-**Legacy API:**
 ```lua
 textWidgetSetSelectable(widgetId, selectable)
 ```
@@ -591,15 +535,12 @@ textWidgetSetSelectable(widgetId, selectable)
 textWidgetSetSelectable(logWidget, true)
 ```
 
-**Source:** `types/plugin.ts:128`
-
 ---
 
 ### textWidgetSetTransparent
 
 Set whether a text widget has a transparent background.
 
-**Legacy API:**
 ```lua
 textWidgetSetTransparent(widgetId, transparent)
 ```
@@ -614,8 +555,6 @@ textWidgetSetTransparent(widgetId, transparent)
 -- Make widget overlay without blocking view
 textWidgetSetTransparent(logWidget, true)
 ```
-
-**Source:** `types/plugin.ts:129`
 
 ---
 

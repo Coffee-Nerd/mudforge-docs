@@ -2,8 +2,6 @@
 
 Functions for accessing MUD protocol data. These functions allow plugins to receive and process structured data from MUD servers using GMCP (Generic MUD Communication Protocol) and MSDP (MUD Server Data Protocol).
 
-All functions documented here have been verified against the source code in `types/plugin.ts` and `core/plugin-engine.ts`.
-
 ---
 
 ## GMCP (Generic MUD Communication Protocol)
@@ -24,7 +22,6 @@ getGMCPData(packageName?)
 
 **Returns:** `any` - The GMCP data for the specified package, or all GMCP data if no package specified. Returns `null` if no data available.
 
-**Source:** `types/plugin.ts:179`, `core/plugin-engine.ts:1754-1779`
 
 **Example:**
 ```lua
@@ -57,7 +54,6 @@ getAllGMCPData()
 
 **Returns:** `any` - Object containing all GMCP data organized by package name. Returns `null` if no data available.
 
-**Source:** `types/plugin.ts:180`, `core/plugin-engine.ts:1781-1797`
 
 **Example:**
 ```lua
@@ -84,7 +80,6 @@ getCurrentRoom()
 
 **Returns:** `any` - Current room data from GMCP Room.Info package. Returns `null` if no room data available.
 
-**Source:** `types/plugin.ts:181`, `core/plugin-engine.ts:1799-1825`
 
 **Example:**
 ```lua
@@ -118,7 +113,6 @@ onGMCPUpdate(packageName, callback)
 **Callback Parameters:**
 - `data` - The new GMCP data for the package
 
-**Source:** `types/plugin.ts:182`, `core/plugin-engine.ts:1827-1858`
 
 **Example:**
 ```lua
@@ -161,7 +155,6 @@ getMSDPVariable(name)
 
 **Returns:** `any` - The value of the MSDP variable, or `null` if not set.
 
-**Source:** `types/plugin.ts:183`, `core/plugin-engine.ts:1860-1875`
 
 **Example:**
 ```lua
@@ -191,7 +184,6 @@ getAllMSDPVariables()
 
 **Returns:** `table` - A table containing all MSDP variables as key-value pairs. Returns empty table `{}` if no variables set.
 
-**Source:** `types/plugin.ts:184`, `core/plugin-engine.ts:1877-1892`
 
 **Example:**
 ```lua
@@ -220,7 +212,6 @@ onMSDPChange(variableName, callback)
 - `value` - The new value of the variable
 - `oldValue` - The previous value of the variable
 
-**Source:** `types/plugin.ts:186`, `core/plugin-engine.ts:1894-1927`
 
 **Example:**
 ```lua
@@ -260,7 +251,6 @@ onMSDPChangeGlobal(variableName, callback)
 - `value` - The new value of the variable
 - `oldValue` - The previous value of the variable
 
-**Source:** `types/plugin.ts:188`, `core/plugin-engine.ts:1929-1961`
 
 **Example:**
 ```lua

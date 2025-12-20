@@ -2,8 +2,6 @@
 
 Functions for loading and rendering images.
 
-All functions documented here have been verified against the source code.
-
 ---
 
 ## Image Loading
@@ -12,7 +10,6 @@ All functions documented here have been verified against the source code.
 
 Load an image from a URL and associate it with an ID for later drawing.
 
-**Next-Gen API:**
 ```lua
 loadImage(imageId, url)
 ```
@@ -33,15 +30,12 @@ drawImage("player", 100, 100, 32, 32)
 drawImage("enemy", 200, 100, 32, 32)
 ```
 
-**Source:** `core/next-gen-plugin-runtime.ts:237-248`
-
 ---
 
 ### preloadImage
 
 Preload an image from a URL. Returns a Promise that resolves when the image is loaded.
 
-**API:**
 ```lua
 preloadImage(imageUrl)
 ```
@@ -52,17 +46,14 @@ preloadImage(imageUrl)
 
 **Returns:** `Promise<void>` - Resolves when image is loaded
 
-**Source:** `types/plugin.ts:101`
-
 ---
 
 ## Image Drawing
 
-### drawImage (Next-Gen - Unified)
+### drawImage
 
 Draw an image with optional transforms. This is a unified function that supports all image operations.
 
-**Next-Gen API:**
 ```lua
 drawImage(imageId, x, y, width?, height?, alpha?, angle?, sourceX?, sourceY?, sourceWidth?, sourceHeight?, centerX?, centerY?)
 ```
@@ -101,101 +92,51 @@ drawImage("player", 100, 100, 64, 64, 1.0, math.pi / 4)
 drawImage("tileset", 100, 100, 32, 32, 1.0, 0, 0, 0, 32, 32)
 ```
 
-**Source:** `core/next-gen-plugin-runtime.ts:252-281`
-
 ---
 
-### drawImage (Legacy)
+## Complete Image Example
 
-Draw an image at a position with optional size.
-
-**Legacy API:**
 ```lua
-drawImage(widgetId, imageUrl, x, y, width?, height?)
+-- Complete image rendering example
+local plugin = {}
+
+local playerImage = nil
+local tilesetLoaded = false
+
+function plugin.onLoad()
+  -- Load images
+  loadImage("player", "/plugins/my-plugin/player.png")
+  loadImage("tileset", "/plugins/my-plugin/tiles.png")
+  loadImage("background", "/plugins/my-plugin/bg.jpg")
+
+  -- Create a widget to display sprites
+  local spriteWidget = createWidget({
+    type = "canvas",
+    title = "Sprite Display",
+    width = 400,
+    height = 300,
+    x = 100,
+    y = 100
+  })
+
+  setActiveWidget(spriteWidget)
+
+  -- Draw background
+  drawImage("background", 0, 0, 400, 300)
+
+  -- Draw a tile from the tileset (tile at row 2, column 3, 32x32 tiles)
+  local tileX = 3 * 32
+  local tileY = 2 * 32
+  drawImage("tileset", 50, 50, 64, 64, 1.0, 0, tileX, tileY, 32, 32)
+
+  -- Draw player with some transparency
+  drawImage("player", 100, 100, 48, 48, 0.9)
+
+  -- Draw rotated player (facing different direction)
+  drawImage("player", 200, 100, 48, 48, 1.0, math.pi / 2)  -- 90 degrees
+
+  print("Sprite demo loaded!")
+end
+
+return plugin
 ```
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| widgetId | string | Yes | Target widget ID |
-| imageUrl | string | Yes | URL of the image |
-| x | number | Yes | X position |
-| y | number | Yes | Y position |
-| width | number | No | Original width |
-| height | number | No | Original height |
-
-**Source:** `types/plugin.ts:97`
-
----
-
-### drawImageAlpha
-
-Draw an image with alpha transparency and optional tint color.
-
-**Legacy API:**
-```lua
-drawImageAlpha(widgetId, imageUrl, x, y, width, height, alpha, tintColor?)
-```
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| widgetId | string | Yes | Target widget ID |
-| imageUrl | string | Yes | URL of the image |
-| x | number | Yes | X position |
-| y | number | Yes | Y position |
-| width | number | Yes | Draw width |
-| height | number | Yes | Draw height |
-| alpha | number | Yes | Transparency (0.0-1.0) |
-| tintColor | string | No | Color to tint the image |
-
-**Source:** `types/plugin.ts:98`
-
----
-
-### drawImagePart
-
-Draw a portion of an image (useful for spritesheets and tile maps).
-
-**Legacy API:**
-```lua
-drawImagePart(widgetId, imageUrl, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight)
-```
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| widgetId | string | Yes | Target widget ID |
-| imageUrl | string | Yes | URL of the image |
-| destX | number | Yes | Destination X position |
-| destY | number | Yes | Destination Y position |
-| destWidth | number | Yes | Destination width |
-| destHeight | number | Yes | Destination height |
-| srcX | number | Yes | Source X in image |
-| srcY | number | Yes | Source Y in image |
-| srcWidth | number | Yes | Source width to copy |
-| srcHeight | number | Yes | Source height to copy |
-
-**Source:** `types/plugin.ts:99`
-
----
-
-### drawImageRotated
-
-Draw an image rotated by a specified angle.
-
-**Legacy API:**
-```lua
-drawImageRotated(widgetId, imageUrl, x, y, width, height, angle, centerX?, centerY?)
-```
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| widgetId | string | Yes | - | Target widget ID |
-| imageUrl | string | Yes | - | URL of the image |
-| x | number | Yes | - | X position |
-| y | number | Yes | - | Y position |
-| width | number | Yes | - | Draw width |
-| height | number | Yes | - | Draw height |
-| angle | number | Yes | - | Rotation angle in radians |
-| centerX | number | No | width/2 | Rotation center X (relative to image) |
-| centerY | number | No | height/2 | Rotation center Y (relative to image) |
-
-**Source:** `types/plugin.ts:100`

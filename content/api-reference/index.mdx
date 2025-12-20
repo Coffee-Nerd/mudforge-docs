@@ -2,8 +2,6 @@
 
 This section contains the complete API reference for MudForge plugin development.
 
-All functions documented here have been verified against the actual source code in `types/plugin.ts` and the runtime implementations.
-
 ## Categories
 
 - **[Drawing Functions](/docs/api-reference/drawing-functions)** - Shapes, gradients, canvas operations
@@ -18,25 +16,54 @@ All functions documented here have been verified against the actual source code 
 - **[Utility Functions](/docs/api-reference/utility-functions)** - Helpers and utilities
 - **[Lua Standard Libraries](/docs/api-reference/lua-libraries)** - table, math, string, os, io
 
-## Engine Types
+## Getting Started
 
-MudForge supports two plugin engine types:
+To use the plugin API, create a Lua file in the plugins directory:
 
-### Next-Gen Engine (Recommended)
 ```lua
-settings = {
-  engineType = "next-gen"
-}
-```
-- Clean global API without widget ID prefixes
-- Uses `setActiveWidget()` to target widgets
-- Better performance
+local plugin = {}
 
-### Legacy Engine
-```lua
-settings = {
-  engineType = "legacy"  -- or omit for default
-}
+function plugin.onLoad()
+  -- Plugin initialization code
+  echo("Plugin loaded!", "#00ff00")
+end
+
+function plugin.onUnload()
+  -- Cleanup code
+end
+
+return plugin
 ```
-- Widget ID as first parameter in drawing functions
-- MUSHclient-compatible API style
+
+### Drawing on Widgets
+
+Canvas widgets automatically become active when created. Just create and draw:
+
+```lua
+local myWidget = createWidget({
+  type = "canvas",
+  title = "My Widget",
+  width = 400,
+  height = 300
+})
+
+-- Draw immediately - widget is already active!
+drawRect(0, 0, 400, 300, "#1a1a2e")
+drawText("Hello World!", 10, 20, "#ffffff")
+```
+
+Use `setActiveWidget()` only when switching between multiple widgets.
+
+### Responding to MUD Output
+
+Use triggers to react to text from the MUD:
+
+```lua
+addTrigger("HP: (\\d+)/(\\d+)", function(line, matches)
+  local hp = tonumber(matches[1])
+  local maxHp = tonumber(matches[2])
+  if hp < maxHp * 0.3 then
+    send("drink healing potion")
+  end
+end, { type = "regex" })
+```

@@ -2,8 +2,6 @@
 
 Functions for storing and retrieving data within plugins and across sessions.
 
-All functions documented here have been verified against the source code.
-
 ---
 
 ## Plugin Variables
@@ -39,7 +37,6 @@ setVariable("is_resting", false)
 setVariable("inventory", { sword = 1, potion = 5 })
 ```
 
-**Source:** `types/plugin.ts:155`, `core/next-gen-plugin-runtime.ts:1499`
 
 ---
 
@@ -76,7 +73,6 @@ else
 end
 ```
 
-**Source:** `types/plugin.ts:156`, `core/next-gen-plugin-runtime.ts:1500`
 
 ---
 
@@ -102,7 +98,6 @@ deleteVariable("temp_target")
 deleteVariable("last_attack_time")
 ```
 
-**Source:** `types/plugin.ts:275`
 
 ---
 
@@ -132,7 +127,6 @@ for _ in pairs(vars) do count = count + 1 end
 echo("Total variables: " .. count)
 ```
 
-**Source:** `types/plugin.ts:277`
 
 ---
 
@@ -157,7 +151,6 @@ When used within trigger/alias scripts, automatically converts value to string (
 SetVariable("last_hp", "%1")  -- Capture from trigger match
 ```
 
-**Source:** `core/next-gen-plugin-runtime.ts:2874-2876`
 
 ---
 
@@ -175,7 +168,6 @@ local value = GetVariable(name)
 local lastHp = GetVariable("last_hp")
 ```
 
-**Source:** `core/next-gen-plugin-runtime.ts:2877-2879`
 
 ---
 
@@ -236,7 +228,6 @@ local config = {
 saveTable("plugin_config", config)
 ```
 
-**Source:** `types/plugin.ts:159`, `core/next-gen-plugin-runtime.ts:1501`
 
 ---
 
@@ -278,7 +269,6 @@ local config = loadTable("plugin_config") or {
 local visitedRooms = loadTable("visited_rooms") or {}
 ```
 
-**Source:** `types/plugin.ts:160`, `core/next-gen-plugin-runtime.ts:1502`
 
 ---
 

@@ -2,15 +2,12 @@
 
 Standard Lua libraries available in the MudForge plugin environment. These are JavaScript implementations that mirror Lua's standard library behavior.
 
-All functions documented here have been verified against the source code in `core/next-gen-plugin-runtime.ts`.
-
 ---
 
 ## table
 
 Table manipulation functions for working with Lua tables (arrays and dictionaries).
 
-**Source:** `core/next-gen-plugin-runtime.ts:674-850`
 
 ### table.concat
 
@@ -170,7 +167,6 @@ local x, y = table.unpack(arr, 2, 3)  -- x=20, y=30
 
 Mathematical functions and constants.
 
-**Source:** `core/next-gen-plugin-runtime.ts:900-945`
 
 ### Constants
 
@@ -269,7 +265,6 @@ math.modf(x)      -- Returns integer and fractional parts
 
 String manipulation functions.
 
-**Source:** `core/next-gen-plugin-runtime.ts:948-1125`
 
 ### string.len
 
@@ -519,7 +514,6 @@ print(string.format("Hex: %x", 255))            -- "Hex: ff"
 
 Operating system functions (web-safe implementation).
 
-**Source:** `core/next-gen-plugin-runtime.ts:1127-1175`
 
 ### os.clock
 
@@ -631,7 +625,6 @@ print("Elapsed: " .. elapsed .. " seconds")
 
 Functions for iterating over tables.
 
-**Source:** `core/next-gen-plugin-runtime.ts:1393-1438`
 
 ### pairs
 

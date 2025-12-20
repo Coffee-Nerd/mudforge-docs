@@ -2,8 +2,6 @@
 
 Functions for interacting with the MUD server and terminal output.
 
-All functions documented here have been verified against the source code.
-
 ---
 
 ## Sending Commands
@@ -12,7 +10,6 @@ All functions documented here have been verified against the source code.
 
 Send a command to the MUD server.
 
-**API:**
 ```lua
 send(command)
 ```
@@ -35,43 +32,12 @@ send("say Hello, everyone!")
 send("tell bob How are you?")
 ```
 
-**Source:** `types/plugin.ts:141`
-
----
-
-### Send (MUSHclient Compatibility)
-
-Send a command with wildcard substitution (MUSHclient compatibility).
-
-**API:**
-```lua
-Send(command)
-```
-
-When used within a trigger context, `%1`, `%2`, etc. are substituted with matched wildcard values.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| command | string | Yes | Command with optional wildcard placeholders |
-
-**Example:**
-```lua
--- In a trigger callback, wildcards are substituted
--- If trigger matched "Bob says 'hello'" with pattern "(\\w+) says '(.+)'"
--- %1 = "Bob", %2 = "hello"
-Send("tell %1 I heard you say %2")
--- Sends: "tell Bob I heard you say hello"
-```
-
-**Source:** `core/next-gen-plugin-runtime.ts:2804-2813`
-
 ---
 
 ### executeCommand
 
 Execute a command through the command dispatcher.
 
-**API:**
 ```lua
 executeCommand(command)
 ```
@@ -79,10 +45,6 @@ executeCommand(command)
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | command | string | Yes | The command to execute |
-
-**Note:** This function is equivalent to `Execute()` from MUSHclient.
-
-**Source:** `types/plugin.ts:281`
 
 ---
 
@@ -92,7 +54,6 @@ executeCommand(command)
 
 Output text to the terminal (visible to the user but not sent to MUD).
 
-**API:**
 ```lua
 echo(text, color?)
 ```
@@ -117,15 +78,12 @@ echo("Damage dealt: 150")
 echo("Damage taken: 45")
 ```
 
-**Source:** `types/plugin.ts:142`
-
 ---
 
 ### print
 
 Print a message to the plugin output/terminal.
 
-**API:**
 ```lua
 print(message)
 ```
@@ -140,15 +98,12 @@ print("Debug: Current HP = " .. hp)
 print("Processing trigger...")
 ```
 
-**Source:** `types/plugin.ts:171`, `core/next-gen-plugin-runtime.ts:852-854`
-
 ---
 
 ### utilprint
 
 Print a utility message (similar to print but may have different formatting).
 
-**API:**
 ```lua
 utilprint(message)
 ```
@@ -163,15 +118,12 @@ utilprint("Timer expired")
 utilprint("Connection status: connected")
 ```
 
-**Source:** `types/plugin.ts:172`, `core/next-gen-plugin-runtime.ts:856-858`
-
 ---
 
 ### tprint
 
 Print a Lua table in a readable format (for debugging).
 
-**API:**
 ```lua
 tprint(table, indent?, done?)
 ```
@@ -202,15 +154,12 @@ tprint(player)
 --   "mp" = 50
 ```
 
-**Source:** `core/next-gen-plugin-runtime.ts:861-893`
-
 ---
 
 ### colourNote
 
-Output colored text to the terminal (MUSHclient compatibility).
+Output colored text to the terminal.
 
-**Legacy API:**
 ```lua
 colourNote(foreground, background, text)
 ```
@@ -237,15 +186,12 @@ colourNote("green", "black", "You found 100 gold!")
 colourNote("yellow", "", "Warning: Player approaching")
 ```
 
-**Source:** `types/plugin.ts:285`, `core/next-gen-plugin-runtime.ts:2820-2833`
-
 ---
 
-### Note (MUSHclient Compatibility)
+### Note
 
-Echo text to the terminal (MUSHclient alias for `echo`).
+Echo text to the terminal.
 
-**API:**
 ```lua
 Note(text)
 ```
@@ -259,8 +205,6 @@ Note(text)
 Note("This is displayed in the terminal")
 ```
 
-**Source:** `core/next-gen-plugin-runtime.ts:2817-2819`
-
 ---
 
 ## Plugin Commands
@@ -269,7 +213,6 @@ Note("This is displayed in the terminal")
 
 Register a custom command that can be executed from the terminal.
 
-**API:**
 ```lua
 registerCommand(commandName, handler, description?)
 ```
@@ -310,17 +253,14 @@ end, "Go to a named location")
 /goto tavern
 ```
 
-**Source:** `types/plugin.ts:163`, `core/next-gen-plugin-runtime.ts:1503`
-
 ---
 
 ## Delayed Execution
 
-### DoAfter (MUSHclient Compatibility)
+### DoAfter
 
 Execute a command after a delay.
 
-**API:**
 ```lua
 DoAfter(seconds, command)
 ```
@@ -341,15 +281,12 @@ DoAfter(2, "cast heal")
 DoAfter(3, "attack")
 ```
 
-**Source:** `core/next-gen-plugin-runtime.ts:2837-2848`
-
 ---
 
-### DoAfterSpecial (MUSHclient Compatibility)
+### DoAfterSpecial
 
 Execute a command or script after a delay with specified send-to target.
 
-**API:**
 ```lua
 DoAfterSpecial(seconds, code, sendto)
 ```
@@ -382,8 +319,6 @@ DoAfterSpecial(10, "Timer expired!", sendto.output)
 -- Execute script after delay
 DoAfterSpecial(3, "healIfLow()", sendto.script)
 ```
-
-**Source:** `core/next-gen-plugin-runtime.ts:2850-2871`
 
 ---
 

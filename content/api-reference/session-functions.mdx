@@ -2,8 +2,6 @@
 
 Functions for working with multiple MUD connections. The multi-session API allows plugins to manage and communicate across multiple simultaneous MUD connections.
 
-All functions documented here have been verified against the source code in `types/plugin.ts:195-247` and `core/plugin-session-api.ts`.
-
 ---
 
 ## Session Information
@@ -27,7 +25,6 @@ getSession()
 | connected | boolean | Whether the session is connected |
 | active | boolean | Whether this is the currently active session |
 
-**Source:** `types/plugin.ts:201`, `core/plugin-session-api.ts:135-146`
 
 **Example:**
 ```lua
@@ -51,7 +48,6 @@ getSessionId()
 
 **Returns:** `string | null` - The session ID or `null` if no session.
 
-**Source:** `types/plugin.ts:203`, `core/plugin-session-api.ts:148-150`
 
 **Example:**
 ```lua
@@ -73,7 +69,6 @@ getAllSessions()
 
 **Returns:** `table` - Array of session information objects (same format as `getSession()`).
 
-**Source:** `types/plugin.ts:205`, `core/plugin-session-api.ts:152-159`
 
 **Example:**
 ```lua
@@ -103,7 +98,6 @@ getSessionById(sessionId)
 
 **Returns:** `table | null` - Session information object or `null` if not found.
 
-**Source:** `types/plugin.ts:207`, `core/plugin-session-api.ts:161-169`
 
 **Example:**
 ```lua
@@ -129,7 +123,6 @@ getSessionByName(name)
 
 **Returns:** `table | null` - Session information object or `null` if not found.
 
-**Source:** `types/plugin.ts:209`, `core/plugin-session-api.ts:171-179`
 
 **Example:**
 ```lua
@@ -152,7 +145,6 @@ isActiveSession()
 
 **Returns:** `boolean` - `true` if this is the active session, `false` otherwise.
 
-**Source:** `types/plugin.ts:211`, `core/plugin-session-api.ts:181-184`
 
 **Example:**
 ```lua
@@ -184,7 +176,6 @@ sendToSession(sessionName, command)
 
 **Returns:** `boolean` - `true` if the command was sent successfully.
 
-**Source:** `types/plugin.ts:215`, `core/plugin-session-api.ts:190-203`
 
 **Example:**
 ```lua
@@ -210,7 +201,6 @@ sendToSessionId(sessionId, command)
 
 **Returns:** `boolean` - `true` if the command was sent successfully.
 
-**Source:** `types/plugin.ts:217`, `core/plugin-session-api.ts:205-212`
 
 **Example:**
 ```lua
@@ -234,7 +224,6 @@ sendToAll(command)
 
 **Returns:** `number` - The number of sessions the command was sent to.
 
-**Source:** `types/plugin.ts:219`, `core/plugin-session-api.ts:214-222`
 
 **Example:**
 ```lua
@@ -262,7 +251,6 @@ sendToOthers(command)
 
 **Returns:** `number` - The number of sessions the command was sent to.
 
-**Source:** `types/plugin.ts:221`, `core/plugin-session-api.ts:224-233`
 
 **Example:**
 ```lua
@@ -292,7 +280,6 @@ getSessionVariable(sessionName, variableName)
 
 **Returns:** `any` - The variable value, or `nil` if not found.
 
-**Source:** `types/plugin.ts:225`, `core/plugin-session-api.ts:239-254`
 
 **Example:**
 ```lua
@@ -321,7 +308,6 @@ setSessionVariable(sessionName, variableName, value)
 
 **Returns:** `boolean` - `true` if the variable was set successfully.
 
-**Source:** `types/plugin.ts:227`, `core/plugin-session-api.ts:256-284`
 
 **Example:**
 ```lua
@@ -346,7 +332,6 @@ getAllSessionVariables(variableName)
 
 **Returns:** `table` - A table mapping session IDs to `{name, value}` pairs.
 
-**Source:** `types/plugin.ts:229`, `core/plugin-session-api.ts:286-307`
 
 **Example:**
 ```lua
@@ -377,7 +362,6 @@ onGlobal(event, callback)
 
 **Returns:** `function` - Call this function to unsubscribe.
 
-**Source:** `types/plugin.ts:233`, `core/plugin-session-api.ts:313-329`
 
 **Example:**
 ```lua
@@ -405,7 +389,6 @@ broadcast(event, data?)
 | event | string | Yes | The event name to broadcast |
 | data | any | No | Optional data to send with the event |
 
-**Source:** `types/plugin.ts:235`, `core/plugin-session-api.ts:331-338`
 
 **Example:**
 ```lua
@@ -437,7 +420,6 @@ emitToSession(sessionName, event, data?)
 
 **Returns:** `boolean` - `true` if the event was sent successfully.
 
-**Source:** `types/plugin.ts:237`, `core/plugin-session-api.ts:340-353`
 
 **Example:**
 ```lua
@@ -467,7 +449,6 @@ getSessionGMCP(sessionName, packageName?)
 
 **Returns:** `any` - The GMCP data, or `null` if not available.
 
-**Source:** `types/plugin.ts:241`, `core/plugin-session-api.ts:359-378`
 
 **Example:**
 ```lua
@@ -497,7 +478,6 @@ getAllSessionGMCP(packageName)
 
 **Returns:** `table` - A table mapping session IDs to `{name, data}` pairs.
 
-**Source:** `types/plugin.ts:243`, `core/plugin-session-api.ts:380-401`
 
 **Example:**
 ```lua
@@ -528,7 +508,6 @@ switchToSession(sessionName)
 
 **Returns:** `boolean` - `true` if the switch was successful.
 
-**Source:** `types/plugin.ts:247`, `core/plugin-session-api.ts:407-420`
 
 **Example:**
 ```lua

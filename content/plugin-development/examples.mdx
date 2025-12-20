@@ -10,7 +10,6 @@ The simplest possible plugin:
 settings = {
   name = "Echo Plugin",
   version = "1.0.0",
-  engineType = "next-gen"
 }
 
 function initialize()
@@ -30,7 +29,6 @@ Drawing shapes on a canvas:
 settings = {
   name = "Canvas Demo",
   version = "1.0.0",
-  engineType = "next-gen"
 }
 
 local widget = nil
@@ -45,9 +43,7 @@ function initialize()
     height = 200
   })
 
-  setActiveWidget(widget)
-
-  -- Clear with dark background
+  -- Draw on the canvas (automatically active after createWidget)
   clear("#1a1a2e")
 
   -- Draw various shapes
@@ -72,7 +68,6 @@ Capturing data from MUD output:
 settings = {
   name = "Combat Logger",
   version = "1.0.0",
-  engineType = "next-gen"
 }
 
 local kills = 0
@@ -99,7 +94,6 @@ Periodic actions:
 settings = {
   name = "Auto-Heal",
   version = "1.0.0",
-  engineType = "next-gen"
 }
 
 local healTimer = nil
@@ -141,7 +135,6 @@ Accessing protocol data:
 settings = {
   name = "Room Tracker",
   version = "1.0.0",
-  engineType = "next-gen"
 }
 
 function initialize()
@@ -167,7 +160,6 @@ Sending commands between sessions:
 settings = {
   name = "Session Coordinator",
   version = "1.0.0",
-  engineType = "next-gen"
 }
 
 function initialize()
