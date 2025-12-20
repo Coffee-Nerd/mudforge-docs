@@ -405,16 +405,16 @@ registerWidgetEvent(widgetId, eventType, callback)
 
 | Event | Callback Parameters | Description |
 |-------|-------------------|-------------|
-| click | {x, y, button} | Mouse click |
-| mousedown | {x, y, button} | Mouse button pressed |
-| mouseup | {x, y, button} | Mouse button released |
-| mousemove | {x, y} | Mouse moved over widget |
-| mouseenter | {} | Mouse entered widget |
-| mouseleave | {} | Mouse left widget |
-| wheel | {deltaX, deltaY} | Mouse wheel scrolled |
-| resize | {width, height} | Widget was resized |
-| keydown | {key, code, shift, ctrl, alt} | Key pressed |
-| keyup | {key, code, shift, ctrl, alt} | Key released |
+| click | x, y, button | Mouse click |
+| mousedown | x, y, button | Mouse button pressed |
+| mouseup | x, y, button | Mouse button released |
+| mousemove | x, y | Mouse moved over widget |
+| mouseenter | (none) | Mouse entered widget |
+| mouseleave | (none) | Mouse left widget |
+| wheel | deltaX, deltaY | Mouse wheel scrolled |
+| resize | width, height | Widget was resized |
+| keydown | key, code, shift, ctrl, alt | Key pressed |
+| keyup | key, code, shift, ctrl, alt | Key released |
 
 **Example:**
 ```lua
