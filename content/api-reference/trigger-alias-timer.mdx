@@ -2,33 +2,598 @@
 
 Functions for automation: responding to MUD output, creating shortcuts, and timed actions.
 
-> This page will be populated with verified API documentation from the source code.
+All functions documented here have been verified against the source code.
+
+---
 
 ## Triggers
 
-- `addTrigger()` - Add a trigger
-- `removeTrigger()` - Remove a trigger
-- `enableTrigger()` - Enable a trigger
-- `disableTrigger()` - Disable a trigger
-- `findTriggerByName()` - Find a trigger by name
-- `toggleTriggerByName()` - Toggle a trigger by name
-- `toggleTriggerGroup()` - Toggle a trigger group
+Triggers automatically execute code when specific text patterns appear in MUD output.
+
+### addTrigger
+
+Add a trigger that fires when text matches a pattern.
+
+**API:**
+```lua
+local triggerId = addTrigger(pattern, callback, options?)
+```
+
+**Legacy API:**
+```lua
+local triggerId = addTrigger(pattern, callback, isRegex?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| pattern | string | Yes | Pattern to match |
+| callback | function | Yes | Function to call on match |
+| options | table/boolean | No | Options table or legacy isRegex boolean |
+
+**Options Table:**
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| type | string | "substring" | Match type: "substring", "regex", "exact" |
+| enabled | boolean | true | Whether trigger is active |
+| priority | number | 50 | Trigger priority (lower = higher priority) |
+| oneShot | boolean | false | Remove trigger after first match |
+| keepEvaluating | boolean | true | Continue evaluating other triggers |
+| omitFromOutput | boolean | false | Hide matching line from output |
+| caseSensitive | boolean | false | Case-sensitive matching |
+| matchRawText | boolean | false | Match raw text (with ANSI codes) |
+| group | string | nil | Group name for batch operations |
+| colorize | table | nil | Highlight matches with colors |
+
+**Callback Parameters:**
+
+The callback receives the matched line and any captured groups:
+
+```lua
+function(line, wildcards)
+  -- line: the full matched line
+  -- wildcards: table of captured groups (for regex patterns)
+end
+```
+
+**Example:**
+```lua
+-- Simple substring trigger
+addTrigger("You are hungry", function()
+  send("eat bread")
+end)
+
+-- Regex trigger with captures
+addTrigger("(\\w+) tells you '(.+)'", function(line, matches)
+  local sender = matches[1]
+  local message = matches[2]
+  echo("Tell from " .. sender .. ": " .. message, "#00ff00")
+end, { type = "regex" })
+
+-- One-shot trigger (removes itself after firing)
+addTrigger("Welcome to the game", function()
+  send("look")
+  echo("Auto-looked on login!")
+end, { oneShot = true })
+
+-- Priority trigger (fires before others)
+addTrigger("DANGER:", function()
+  send("flee")
+end, { priority = 10 })
+
+-- Legacy regex syntax
+addTrigger("HP: (\\d+)/(\\d+)", function(line, matches)
+  local hp = tonumber(matches[1])
+  local maxHp = tonumber(matches[2])
+  setVariable("hp", hp)
+  setVariable("maxhp", maxHp)
+end, true)  -- true = isRegex
+```
+
+**Source:** `types/plugin.ts:145`, `core/next-gen-plugin-runtime.ts:1458-1485`
+
+---
+
+### removeTrigger
+
+Remove a trigger by its ID.
+
+**API:**
+```lua
+removeTrigger(triggerId)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| triggerId | string | Yes | The trigger ID returned from addTrigger |
+
+**Example:**
+```lua
+local myTrigger = addTrigger("some pattern", function()
+  -- handler
+end)
+
+-- Later, remove it
+removeTrigger(myTrigger)
+```
+
+**Source:** `types/plugin.ts:146`, `core/next-gen-plugin-runtime.ts:1487-1490`
+
+---
+
+### enableTrigger
+
+Enable a disabled trigger.
+
+**API:**
+```lua
+enableTrigger(triggerId)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| triggerId | string | Yes | The trigger ID |
+
+**Example:**
+```lua
+enableTrigger(combatTrigger)
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:1492-1494`
+
+---
+
+### disableTrigger
+
+Disable a trigger without removing it.
+
+**API:**
+```lua
+disableTrigger(triggerId)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| triggerId | string | Yes | The trigger ID |
+
+**Example:**
+```lua
+-- Disable during safe areas
+disableTrigger(combatTrigger)
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:1496-1498`
+
+---
+
+### findTriggerByName
+
+Find a trigger by its name.
+
+**API:**
+```lua
+local trigger = findTriggerByName(name)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| name | string | Yes | The trigger name |
+
+**Returns:** `{id: string, name: string, enabled: boolean}` or `nil`
+
+**Source:** `types/plugin.ts:255`
+
+---
+
+### toggleTriggerByName
+
+Enable or disable a trigger by its name.
+
+**API:**
+```lua
+local success = toggleTriggerByName(name, enabled)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| name | string | Yes | The trigger name |
+| enabled | boolean | Yes | Whether to enable or disable |
+
+**Returns:** `boolean` - Whether the operation succeeded
+
+**Source:** `types/plugin.ts:257`
+
+---
+
+### toggleTriggerGroup
+
+Enable or disable all triggers in a group.
+
+**API:**
+```lua
+local success = toggleTriggerGroup(groupName, enabled)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| groupName | string | Yes | The group name |
+| enabled | boolean | Yes | Whether to enable or disable |
+
+**Returns:** `boolean` - Whether the operation succeeded
+
+**Example:**
+```lua
+-- Add triggers to a group
+addTrigger("combat pattern 1", handler1, { group = "combat" })
+addTrigger("combat pattern 2", handler2, { group = "combat" })
+
+-- Disable all combat triggers at once
+toggleTriggerGroup("combat", false)
+
+-- Re-enable later
+toggleTriggerGroup("combat", true)
+```
+
+**Source:** `types/plugin.ts:259`
+
+---
 
 ## Aliases
 
-- `addAlias()` - Add an alias
-- `removeAlias()` - Remove an alias
-- `findAliasByName()` - Find an alias by name
-- `toggleAliasByName()` - Toggle an alias by name
+Aliases intercept user input and transform or execute code based on patterns.
+
+### addAlias
+
+Add an alias that matches user input.
+
+**API:**
+```lua
+local aliasId = addAlias(pattern, replacement, callback?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| pattern | string | Yes | Pattern to match in user input |
+| replacement | string | Yes | Replacement text or command |
+| callback | function | No | Optional callback function |
+
+**Example:**
+```lua
+-- Simple text replacement
+addAlias("^nn$", "north;north")  -- "nn" expands to "north;north"
+
+-- Alias with wildcards
+addAlias("^go (.+)$", "speedwalk $1")  -- "go tavern" becomes "speedwalk tavern"
+
+-- Alias with callback
+addAlias("^heal (.+)$", "", function(matches)
+  local target = matches[1]
+  send("cast 'cure light wounds' " .. target)
+  echo("Healing " .. target .. "...", "#00ff00")
+end)
+```
+
+**Source:** `types/plugin.ts:147`
+
+---
+
+### removeAlias
+
+Remove an alias by its ID.
+
+**API:**
+```lua
+removeAlias(aliasId)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| aliasId | string | Yes | The alias ID returned from addAlias |
+
+**Source:** `types/plugin.ts:148`
+
+---
+
+### findAliasByName
+
+Find an alias by its name.
+
+**API:**
+```lua
+local alias = findAliasByName(name)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| name | string | Yes | The alias name |
+
+**Returns:** `{id: string, name: string, enabled: boolean}` or `nil`
+
+**Source:** `types/plugin.ts:269`
+
+---
+
+### toggleAliasByName
+
+Enable or disable an alias by its name.
+
+**API:**
+```lua
+local success = toggleAliasByName(name, enabled)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| name | string | Yes | The alias name |
+| enabled | boolean | Yes | Whether to enable or disable |
+
+**Returns:** `boolean` - Whether the operation succeeded
+
+**Source:** `types/plugin.ts:271`
+
+---
 
 ## Timers
 
-- `addTimer()` - Add a timer
-- `removeTimer()` - Remove a timer
-- `findTimerByName()` - Find a timer by name
-- `toggleTimerByName()` - Toggle a timer by name
+Timers execute code after a delay or at regular intervals.
+
+### addTimer
+
+Add a timer that fires after an interval.
+
+**API:**
+```lua
+local timerId = addTimer(interval, callback, repeating?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| interval | number | Yes | - | Interval in milliseconds |
+| callback | function | Yes | - | Function to execute |
+| repeating | boolean | No | false | Whether to repeat |
+
+**Example:**
+```lua
+-- One-shot timer (fires once after 5 seconds)
+addTimer(5000, function()
+  echo("5 seconds have passed!")
+end)
+
+-- Repeating timer (fires every 10 seconds)
+local autoSaveTimer = addTimer(10000, function()
+  send("save")
+  echo("Auto-saved!")
+end, true)
+
+-- Repeating timer for status updates (every minute)
+addTimer(60000, function()
+  send("score")
+end, true)
+```
+
+**Source:** `types/plugin.ts:151`
+
+---
+
+### removeTimer
+
+Remove a timer by its ID.
+
+**API:**
+```lua
+removeTimer(timerId)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| timerId | string | Yes | The timer ID returned from addTimer |
+
+**Example:**
+```lua
+local myTimer = addTimer(5000, callback, true)
+
+-- Stop the timer
+removeTimer(myTimer)
+```
+
+**Source:** `types/plugin.ts:152`
+
+---
+
+### findTimerByName
+
+Find a timer by its name.
+
+**API:**
+```lua
+local timer = findTimerByName(name)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| name | string | Yes | The timer name |
+
+**Returns:** `{id: string, name: string, enabled: boolean}` or `nil`
+
+**Source:** `types/plugin.ts:263`
+
+---
+
+### toggleTimerByName
+
+Enable or disable a timer by its name.
+
+**API:**
+```lua
+local success = toggleTimerByName(name, enabled)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| name | string | Yes | The timer name |
+| enabled | boolean | Yes | Whether to enable or disable |
+
+**Returns:** `boolean` - Whether the operation succeeded
+
+**Source:** `types/plugin.ts:265`
+
+---
 
 ## JavaScript-Style Timers
 
-- `setTimeout()` - Set a timeout
-- `clearTimeout()` - Clear a timeout
+Convenience functions that match JavaScript's timer API.
+
+### setTimeout
+
+Execute a function after a delay (one-shot timer).
+
+**API:**
+```lua
+local timerId = setTimeout(callback, delay)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| callback | function | Yes | Function to execute |
+| delay | number | Yes | Delay in milliseconds |
+
+**Returns:** `string` - Timer ID for cancellation
+
+**Example:**
+```lua
+-- Execute after 2 seconds
+setTimeout(function()
+  echo("Timer fired!")
+end, 2000)
+
+-- Store ID for potential cancellation
+local timerId = setTimeout(function()
+  send("look")
+end, 5000)
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:1449-1452`
+
+---
+
+### clearTimeout
+
+Cancel a timeout before it fires.
+
+**API:**
+```lua
+clearTimeout(timerId)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| timerId | string | Yes | The timer ID from setTimeout |
+
+**Example:**
+```lua
+local timerId = setTimeout(function()
+  send("delayed command")
+end, 5000)
+
+-- Cancel it before it fires
+clearTimeout(timerId)
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:1454-1456`
+
+---
+
+## Complete Automation Example
+
+```lua
+-- Complete automation plugin example
+local plugin = {}
+
+local triggers = {}
+local timers = {}
+local aliases = {}
+
+function plugin.onLoad()
+  -- === TRIGGERS ===
+
+  -- Auto-heal when health is low
+  triggers.lowHealth = addTrigger("HP: (\\d+)/(\\d+)", function(line, matches)
+    local hp = tonumber(matches[1])
+    local maxHp = tonumber(matches[2])
+    local percent = (hp / maxHp) * 100
+
+    if percent < 30 then
+      colourNote("red", "", "!!! LOW HEALTH (" .. percent .. "%) !!!")
+      send("drink healing potion")
+    end
+  end, { type = "regex", priority = 10 })
+
+  -- Auto-loot
+  triggers.loot = addTrigger("is DEAD", function()
+    setTimeout(function()
+      send("get all corpse")
+    end, 500)
+  end)
+
+  -- Combat trigger group
+  triggers.combat1 = addTrigger("attacks you", attackHandler, { group = "combat" })
+  triggers.combat2 = addTrigger("swings at you", attackHandler, { group = "combat" })
+
+  -- === ALIASES ===
+
+  -- Quick movement aliases
+  aliases.run = addAlias("^run (.+)$", "", function(matches)
+    local direction = matches[1]
+    for i = 1, 5 do
+      send(direction)
+    end
+  end)
+
+  -- Quick attack alias
+  aliases.kill = addAlias("^kk (.+)$", "", function(matches)
+    toggleTriggerGroup("combat", true)
+    send("kill " .. matches[1])
+  end)
+
+  -- === TIMERS ===
+
+  -- Auto-save every 5 minutes
+  timers.autoSave = addTimer(300000, function()
+    send("save")
+    echo("Auto-saved!", "#888888")
+  end, true)
+
+  -- Periodic status check
+  timers.status = addTimer(60000, function()
+    send("score")
+  end, true)
+
+  echo("Automation plugin loaded!", "#00ff00")
+end
+
+function attackHandler(line)
+  -- React to being attacked
+  echo("Under attack!", "#ff0000")
+end
+
+function plugin.onUnload()
+  -- Clean up triggers
+  for name, id in pairs(triggers) do
+    removeTrigger(id)
+  end
+
+  -- Clean up timers
+  for name, id in pairs(timers) do
+    removeTimer(id)
+  end
+
+  -- Clean up aliases
+  for name, id in pairs(aliases) do
+    removeAlias(id)
+  end
+
+  echo("Automation plugin unloaded", "#888888")
+end
+
+return plugin
+```
