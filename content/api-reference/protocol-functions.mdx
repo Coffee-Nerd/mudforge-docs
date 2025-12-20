@@ -1,19 +1,314 @@
 # Protocol Functions (GMCP/MSDP)
 
-Functions for accessing MUD protocol data.
+Functions for accessing MUD protocol data. These functions allow plugins to receive and process structured data from MUD servers using GMCP (Generic MUD Communication Protocol) and MSDP (MUD Server Data Protocol).
 
-> This page will be populated with verified API documentation from the source code.
+All functions documented here have been verified against the source code in `types/plugin.ts` and `core/plugin-engine.ts`.
+
+---
 
 ## GMCP (Generic MUD Communication Protocol)
 
-- `getGMCPData()` - Get GMCP data (all or specific package)
-- `getAllGMCPData()` - Get all GMCP data
-- `getCurrentRoom()` - Get current room GMCP data
-- `onGMCPUpdate()` - Subscribe to GMCP updates
+GMCP provides structured data from the MUD server, including room information, character stats, and game state.
+
+### getGMCPData
+
+Get GMCP data for a specific package or all packages.
+
+```lua
+getGMCPData(packageName?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| packageName | string | No | The GMCP package name (e.g., "Room.Info", "Char.Vitals"). If omitted, returns all data. |
+
+**Returns:** `any` - The GMCP data for the specified package, or all GMCP data if no package specified. Returns `null` if no data available.
+
+**Source:** `types/plugin.ts:179`, `core/plugin-engine.ts:1754-1779`
+
+**Example:**
+```lua
+-- Get room information
+local room = getGMCPData("Room.Info")
+if room then
+  print("Current room: " .. room.name)
+  print("VNUM: " .. room.num)
+end
+
+-- Get character vitals
+local vitals = getGMCPData("Char.Vitals")
+if vitals then
+  print("HP: " .. vitals.hp .. "/" .. vitals.maxhp)
+end
+
+-- Get all GMCP data
+local allData = getGMCPData()
+```
+
+---
+
+### getAllGMCPData
+
+Get all GMCP data as a single object.
+
+```lua
+getAllGMCPData()
+```
+
+**Returns:** `any` - Object containing all GMCP data organized by package name. Returns `null` if no data available.
+
+**Source:** `types/plugin.ts:180`, `core/plugin-engine.ts:1781-1797`
+
+**Example:**
+```lua
+local gmcp = getAllGMCPData()
+if gmcp then
+  if gmcp["Room.Info"] then
+    print("Room: " .. gmcp["Room.Info"].name)
+  end
+  if gmcp["Char.Vitals"] then
+    print("HP: " .. gmcp["Char.Vitals"].hp)
+  end
+end
+```
+
+---
+
+### getCurrentRoom
+
+Get the current room data from GMCP.
+
+```lua
+getCurrentRoom()
+```
+
+**Returns:** `any` - Current room data from GMCP Room.Info package. Returns `null` if no room data available.
+
+**Source:** `types/plugin.ts:181`, `core/plugin-engine.ts:1799-1825`
+
+**Example:**
+```lua
+local room = getCurrentRoom()
+if room then
+  print("You are in: " .. room.name)
+  print("Zone: " .. (room.zone or "Unknown"))
+
+  -- Check exits
+  if room.exits then
+    print("Exits: " .. table.concat(room.exits, ", "))
+  end
+end
+```
+
+---
+
+### onGMCPUpdate
+
+Subscribe to updates for a specific GMCP package. The callback is called whenever the specified package receives new data.
+
+```lua
+onGMCPUpdate(packageName, callback)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| packageName | string | Yes | The GMCP package to subscribe to (e.g., "Room.Info", "Char.Vitals") |
+| callback | function | Yes | Function called when the package receives new data |
+
+**Callback Parameters:**
+- `data` - The new GMCP data for the package
+
+**Source:** `types/plugin.ts:182`, `core/plugin-engine.ts:1827-1858`
+
+**Example:**
+```lua
+-- Track room changes
+onGMCPUpdate("Room.Info", function(data)
+  print("Entered: " .. data.name)
+  print("VNUM: " .. data.num)
+end)
+
+-- Track vitals changes
+onGMCPUpdate("Char.Vitals", function(data)
+  if data.hp < data.maxhp * 0.25 then
+    print("WARNING: Health critical!")
+  end
+end)
+
+-- Track group member updates
+onGMCPUpdate("Group.Members", function(data)
+  print("Group updated - " .. #data .. " members")
+end)
+```
+
+---
 
 ## MSDP (MUD Server Data Protocol)
 
-- `getMSDPVariable()` - Get an MSDP variable
-- `getAllMSDPVariables()` - Get all MSDP variables
-- `onMSDPChange()` - Subscribe to MSDP changes (this session)
-- `onMSDPChangeGlobal()` - Subscribe to MSDP changes (all sessions)
+MSDP provides variable-based data from the MUD server. Unlike GMCP packages, MSDP uses named variables.
+
+### getMSDPVariable
+
+Get the value of an MSDP variable.
+
+```lua
+getMSDPVariable(name)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| name | string | Yes | The MSDP variable name |
+
+**Returns:** `any` - The value of the MSDP variable, or `null` if not set.
+
+**Source:** `types/plugin.ts:183`, `core/plugin-engine.ts:1860-1875`
+
+**Example:**
+```lua
+-- Get character name
+local name = getMSDPVariable("CHARACTER_NAME")
+if name then
+  print("Playing as: " .. name)
+end
+
+-- Get current health
+local health = getMSDPVariable("HEALTH")
+local maxHealth = getMSDPVariable("HEALTH_MAX")
+if health and maxHealth then
+  print("HP: " .. health .. "/" .. maxHealth)
+end
+```
+
+---
+
+### getAllMSDPVariables
+
+Get all MSDP variables as a table.
+
+```lua
+getAllMSDPVariables()
+```
+
+**Returns:** `table` - A table containing all MSDP variables as key-value pairs. Returns empty table `{}` if no variables set.
+
+**Source:** `types/plugin.ts:184`, `core/plugin-engine.ts:1877-1892`
+
+**Example:**
+```lua
+local vars = getAllMSDPVariables()
+for name, value in pairs(vars) do
+  print(name .. " = " .. tostring(value))
+end
+```
+
+---
+
+### onMSDPChange
+
+Subscribe to changes for a specific MSDP variable. This subscription is **session-specific** - it only receives updates from the current session.
+
+```lua
+onMSDPChange(variableName, callback)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| variableName | string | Yes | The MSDP variable to monitor |
+| callback | function | Yes | Function called when the variable changes |
+
+**Callback Parameters:**
+- `value` - The new value of the variable
+- `oldValue` - The previous value of the variable
+
+**Source:** `types/plugin.ts:186`, `core/plugin-engine.ts:1894-1927`
+
+**Example:**
+```lua
+-- Track health changes
+onMSDPChange("HEALTH", function(value, oldValue)
+  local change = value - oldValue
+  if change < 0 then
+    print("Took " .. math.abs(change) .. " damage!")
+  elseif change > 0 then
+    print("Healed " .. change .. " HP")
+  end
+end)
+
+-- Track room changes
+onMSDPChange("ROOM_VNUM", function(value, oldValue)
+  print("Moved from room " .. oldValue .. " to " .. value)
+end)
+```
+
+---
+
+### onMSDPChangeGlobal
+
+Subscribe to changes for an MSDP variable across **all sessions**. This is useful for multi-session features like group status windows that need to aggregate data from multiple characters.
+
+```lua
+onMSDPChangeGlobal(variableName, callback)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| variableName | string | Yes | The MSDP variable to monitor |
+| callback | function | Yes | Function called when the variable changes in any session |
+
+**Callback Parameters:**
+- `sessionId` - The ID of the session where the change occurred
+- `value` - The new value of the variable
+- `oldValue` - The previous value of the variable
+
+**Source:** `types/plugin.ts:188`, `core/plugin-engine.ts:1929-1961`
+
+**Example:**
+```lua
+-- Track health across all sessions (for a group display)
+onMSDPChangeGlobal("HEALTH", function(sessionId, value, oldValue)
+  local session = getSessionById(sessionId)
+  if session then
+    print(session.name .. ": HP changed to " .. value)
+    -- Update group health display
+    updateGroupHealthBar(sessionId, value)
+  end
+end)
+
+-- Monitor all characters' locations
+onMSDPChangeGlobal("ROOM_VNUM", function(sessionId, value, oldValue)
+  local session = getSessionById(sessionId)
+  if session then
+    print(session.name .. " is now in room " .. value)
+  end
+end)
+```
+
+---
+
+## Common GMCP Packages
+
+Different MUDs implement different GMCP packages. Here are some common ones:
+
+| Package | Description |
+|---------|-------------|
+| `Room.Info` | Current room name, VNUM, zone, terrain |
+| `Room.Exits` | Available exits from current room |
+| `Char.Vitals` | Health, mana, movement, etc. |
+| `Char.Status` | Character status effects |
+| `Char.Stats` | Character statistics (STR, DEX, etc.) |
+| `Group.Members` | Party/group member information |
+| `Comm.Channel` | Communication channel messages |
+
+## Common MSDP Variables
+
+| Variable | Description |
+|----------|-------------|
+| `CHARACTER_NAME` | Name of the character |
+| `HEALTH` / `HEALTH_MAX` | Current and maximum health |
+| `MANA` / `MANA_MAX` | Current and maximum mana |
+| `MOVEMENT` / `MOVEMENT_MAX` | Current and maximum movement |
+| `ROOM_VNUM` | Current room virtual number |
+| `ROOM_NAME` | Current room name |
+| `ROOM_EXITS` | Available exits |
+
+> **Note:** The exact packages and variables available depend on your MUD server's implementation. Check your MUD's documentation for available GMCP packages and MSDP variables.
