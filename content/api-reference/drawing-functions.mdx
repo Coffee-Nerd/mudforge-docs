@@ -2,42 +2,774 @@
 
 Functions for drawing shapes, gradients, and performing canvas operations.
 
-> This page will be populated with verified API documentation from the source code.
+All functions documented here have been verified against the source code. The Next-Gen API is shown first (recommended), with Legacy API signatures noted where different.
+
+---
 
 ## Basic Shapes
 
-- `drawRect()` - Draw a rectangle
-- `drawCircle()` - Draw a circle
-- `drawLine()` - Draw a line
-- `drawEllipse()` - Draw an ellipse
-- `drawPolygon()` - Draw a polygon
-- `drawArc()` - Draw an arc
+### drawRect
+
+Draw a filled rectangle with optional stroke.
+
+**Next-Gen API:**
+```lua
+drawRect(x, y, width, height, color, strokeColor?)
+```
+
+**Legacy API:**
+```lua
+drawRect(widgetId, x, y, width, height, fillColor?, strokeColor?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| x | number | Yes | X position of top-left corner |
+| y | number | Yes | Y position of top-left corner |
+| width | number | Yes | Width of rectangle |
+| height | number | Yes | Height of rectangle |
+| color/fillColor | string | Yes (Next-Gen) / No (Legacy) | Fill color (e.g., "#ff0000", "red") |
+| strokeColor | string | No | Stroke/border color |
+
+**Example:**
+```lua
+-- Next-Gen
+setActiveWidget(myWidget)
+drawRect(10, 10, 100, 50, "#3498db", "#2980b9")
+
+-- Legacy
+drawRect(widgetId, 10, 10, 100, 50, "#3498db", "#2980b9")
+```
+
+**Source:** `types/plugin.ts:76-85`, `core/next-gen-plugin-runtime.ts:148-150`
+
+---
+
+### drawCircle
+
+Draw a filled circle with optional stroke.
+
+**Next-Gen API:**
+```lua
+drawCircle(x, y, radius, color, strokeColor?)
+```
+
+**Legacy API:**
+```lua
+drawCircle(widgetId, x, y, radius, fillColor?, strokeColor?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| x | number | Yes | X position of center |
+| y | number | Yes | Y position of center |
+| radius | number | Yes | Radius of circle |
+| color/fillColor | string | Yes (Next-Gen) / No (Legacy) | Fill color |
+| strokeColor | string | No | Stroke/border color |
+
+**Example:**
+```lua
+drawCircle(100, 100, 50, "#e74c3c", "#c0392b")
+```
+
+**Source:** `types/plugin.ts:85`, `core/next-gen-plugin-runtime.ts:152-154`
+
+---
+
+### drawLine
+
+Draw a line between two points.
+
+**Next-Gen API:**
+```lua
+drawLine(x1, y1, x2, y2, color, width)
+```
+
+**Legacy API:**
+```lua
+drawLine(widgetId, x1, y1, x2, y2, color?, width?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| x1 | number | Yes | - | Starting X position |
+| y1 | number | Yes | - | Starting Y position |
+| x2 | number | Yes | - | Ending X position |
+| y2 | number | Yes | - | Ending Y position |
+| color | string | No | "#000000" | Line color |
+| width | number | No | 1 | Line width in pixels |
+
+**Example:**
+```lua
+drawLine(0, 0, 200, 100, "#2ecc71", 3)
+```
+
+**Source:** `types/plugin.ts:75`, `core/next-gen-plugin-runtime.ts:174-176`
+
+---
+
+### drawEllipse
+
+Draw a filled ellipse with optional stroke.
+
+**Next-Gen API:**
+```lua
+drawEllipse(x, y, radiusX, radiusY, color, strokeColor?)
+```
+
+**Legacy API:**
+```lua
+drawEllipse(widgetId, x, y, radiusX, radiusY, fillColor?, strokeColor?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| x | number | Yes | X position of center |
+| y | number | Yes | Y position of center |
+| radiusX | number | Yes | Horizontal radius |
+| radiusY | number | Yes | Vertical radius |
+| color/fillColor | string | Yes (Next-Gen) / No (Legacy) | Fill color |
+| strokeColor | string | No | Stroke/border color |
+
+**Example:**
+```lua
+drawEllipse(100, 100, 80, 40, "#9b59b6")
+```
+
+**Source:** `types/plugin.ts:86`, `core/next-gen-plugin-runtime.ts:178-180`
+
+---
+
+### drawPolygon
+
+Draw a filled polygon from an array of points.
+
+**Next-Gen API:**
+```lua
+drawPolygon(points, color, strokeColor?)
+```
+
+**Legacy API:**
+```lua
+drawPolygon(widgetId, points, fillColor?, strokeColor?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| points | array | Yes | Array of {x, y} point objects |
+| color/fillColor | string | Yes (Next-Gen) / No (Legacy) | Fill color |
+| strokeColor | string | No | Stroke/border color |
+
+**Example:**
+```lua
+-- Draw a triangle
+local points = {
+  {x = 100, y = 10},
+  {x = 150, y = 100},
+  {x = 50, y = 100}
+}
+drawPolygon(points, "#f39c12", "#d35400")
+```
+
+**Source:** `types/plugin.ts:87`, `core/next-gen-plugin-runtime.ts:182-186`
+
+---
+
+### drawArc
+
+Draw an arc (partial circle).
+
+**Next-Gen API:**
+```lua
+drawArc(x, y, radius, startAngle, endAngle, color, strokeColor?)
+```
+
+**Legacy API:**
+```lua
+drawArc(widgetId, x, y, radius, startAngle, endAngle, fillColor?, strokeColor?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| x | number | Yes | X position of center |
+| y | number | Yes | Y position of center |
+| radius | number | Yes | Radius of arc |
+| startAngle | number | Yes | Start angle in radians |
+| endAngle | number | Yes | End angle in radians |
+| color/fillColor | string | Yes (Next-Gen) / No (Legacy) | Fill color |
+| strokeColor | string | No | Stroke/border color |
+
+**Example:**
+```lua
+-- Draw a quarter circle (0 to PI/2)
+drawArc(100, 100, 50, 0, math.pi / 2, "#1abc9c")
+```
+
+**Source:** `types/plugin.ts:88`, `core/next-gen-plugin-runtime.ts:188-190`
+
+---
 
 ## Advanced Shapes
 
-- `drawRoundedRect()` - Draw a rounded rectangle
-- `drawBezier()` - Draw a Bezier curve
-- `drawPath()` - Draw using path commands
+### drawRoundedRect
+
+Draw a rectangle with rounded corners.
+
+**Next-Gen API:**
+```lua
+drawRoundedRect(x, y, width, height, radius, color, strokeColor?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| x | number | Yes | X position of top-left corner |
+| y | number | Yes | Y position of top-left corner |
+| width | number | Yes | Width of rectangle |
+| height | number | Yes | Height of rectangle |
+| radius | number | Yes | Corner radius |
+| color | string | Yes | Fill color |
+| strokeColor | string | No | Stroke/border color |
+
+**Example:**
+```lua
+drawRoundedRect(10, 10, 200, 100, 15, "#3498db", "#2980b9")
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:200-202`
+
+---
+
+### drawBezier
+
+Draw a cubic Bezier curve.
+
+**Next-Gen API:**
+```lua
+drawBezier(x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2, color, width?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| x1 | number | Yes | - | Start point X |
+| y1 | number | Yes | - | Start point Y |
+| cp1x | number | Yes | - | First control point X |
+| cp1y | number | Yes | - | First control point Y |
+| cp2x | number | Yes | - | Second control point X |
+| cp2y | number | Yes | - | Second control point Y |
+| x2 | number | Yes | - | End point X |
+| y2 | number | Yes | - | End point Y |
+| color | string | Yes | - | Line color |
+| width | number | No | 1 | Line width |
+
+**Example:**
+```lua
+drawBezier(10, 100, 50, 10, 150, 10, 190, 100, "#e74c3c", 2)
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:204-215`
+
+---
+
+### drawPath
+
+Draw a complex path using SVG-like commands.
+
+**Next-Gen API:**
+```lua
+drawPath(commands, color, strokeColor?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| commands | array | Yes | Array of path command strings |
+| color | string | Yes | Fill color |
+| strokeColor | string | No | Stroke color |
+
+**Example:**
+```lua
+local commands = {
+  "M 10 10",      -- Move to (10, 10)
+  "L 100 10",     -- Line to (100, 10)
+  "L 100 100",    -- Line to (100, 100)
+  "Z"             -- Close path
+}
+drawPath(commands, "#3498db", "#2980b9")
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:217-231`
+
+---
 
 ## Gradients
 
-- `drawGradient()` - Draw a linear gradient
-- `drawRadialGradient()` - Draw a radial gradient
+### drawGradient
+
+Draw a linear gradient.
+
+**Next-Gen API:**
+```lua
+drawGradient(x, y, width, height, direction, color1, color2)
+```
+
+**Legacy API:**
+```lua
+drawGradient(widgetId, x, y, width, height, color1, color2, direction)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| x | number | Yes | X position |
+| y | number | Yes | Y position |
+| width | number | Yes | Width |
+| height | number | Yes | Height |
+| direction | string | Yes | "horizontal", "vertical", or "diagonal" |
+| color1 | string | Yes | Start color |
+| color2 | string | Yes | End color |
+
+> **Note:** Parameter order differs between Next-Gen and Legacy APIs.
+
+**Example:**
+```lua
+-- Next-Gen (direction before colors)
+drawGradient(0, 0, 200, 100, "horizontal", "#3498db", "#9b59b6")
+
+-- Legacy (direction after colors)
+drawGradient(widgetId, 0, 0, 200, 100, "#3498db", "#9b59b6", "horizontal")
+```
+
+**Source:** `types/plugin.ts:104`, `core/next-gen-plugin-runtime.ts:196-198`
+
+---
+
+### drawRadialGradient
+
+Draw a radial (circular) gradient.
+
+**Legacy API only:**
+```lua
+drawRadialGradient(widgetId, x, y, radius, innerColor, outerColor)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | Target widget ID |
+| x | number | Yes | Center X position |
+| y | number | Yes | Center Y position |
+| radius | number | Yes | Outer radius |
+| innerColor | string | Yes | Color at center |
+| outerColor | string | Yes | Color at edge |
+
+**Source:** `types/plugin.ts:105`
+
+---
 
 ## Canvas Operations
 
-- `clear()` - Clear the canvas
-- `save()` - Save canvas state
-- `restore()` - Restore canvas state
-- `translate()` - Translate the canvas
-- `rotate()` - Rotate the canvas
-- `scale()` - Scale the canvas
-- `setClipRegion()` - Set clipping region
-- `resetClipRegion()` - Reset clipping region
-- `setBlendMode()` - Set blend mode
-- `setGlobalAlpha()` - Set global alpha
+### clear
+
+Clear the canvas, optionally with a fill color.
+
+**Next-Gen API:**
+```lua
+clear(color?)
+```
+
+**Legacy API:**
+```lua
+clearWidget(widgetId)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| color | string | No | Fill color (default: transparent) |
+
+**Example:**
+```lua
+-- Clear to transparent
+clear()
+
+-- Clear to a dark background
+clear("#1a1a2e")
+```
+
+**Source:** `types/plugin.ts:108`, `core/next-gen-plugin-runtime.ts:165-172`
+
+---
+
+### save
+
+Save the current canvas state (transforms, clip region, etc.).
+
+**Next-Gen API:**
+```lua
+save()
+```
+
+**Legacy API:**
+```lua
+saveCanvas(widgetId)
+```
+
+**Source:** `types/plugin.ts:113`, `core/next-gen-plugin-runtime.ts:354-364`
+
+---
+
+### restore
+
+Restore a previously saved canvas state.
+
+**Next-Gen API:**
+```lua
+restore()
+```
+
+**Legacy API:**
+```lua
+restoreCanvas(widgetId)
+```
+
+**Source:** `types/plugin.ts:114`, `core/next-gen-plugin-runtime.ts:366-376`
+
+---
+
+### translate
+
+Translate (move) the coordinate origin.
+
+**Next-Gen API:**
+```lua
+translate(x, y)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| x | number | Yes | Horizontal translation |
+| y | number | Yes | Vertical translation |
+
+**Example:**
+```lua
+save()
+translate(100, 50)
+drawRect(0, 0, 50, 50, "#3498db")  -- Actually draws at (100, 50)
+restore()
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:378-389`
+
+---
+
+### rotate
+
+Rotate the canvas around the origin.
+
+**Next-Gen API:**
+```lua
+rotate(angle)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| angle | number | Yes | Rotation angle in radians |
+
+**Example:**
+```lua
+save()
+translate(100, 100)       -- Move origin to rotation center
+rotate(math.pi / 4)       -- Rotate 45 degrees
+drawRect(-25, -25, 50, 50, "#e74c3c")  -- Draw centered on origin
+restore()
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:391-402`
+
+---
+
+### scale
+
+Scale the canvas drawing.
+
+**Next-Gen API:**
+```lua
+scale(x, y)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| x | number | Yes | Horizontal scale factor |
+| y | number | Yes | Vertical scale factor |
+
+**Example:**
+```lua
+save()
+scale(2, 2)  -- Double size
+drawRect(10, 10, 50, 50, "#2ecc71")  -- Draws at double size
+restore()
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:404-415`
+
+---
+
+### setClipRegion
+
+Set a rectangular clipping region. Drawing outside this region will be clipped.
+
+**Next-Gen API:**
+```lua
+setClipRegion(x, y, width, height)
+```
+
+**Legacy API:**
+```lua
+setClipRegion(widgetId, x, y, width, height)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| x | number | Yes | X position of clip region |
+| y | number | Yes | Y position of clip region |
+| width | number | Yes | Width of clip region |
+| height | number | Yes | Height of clip region |
+
+**Source:** `types/plugin.ts:109`, `core/next-gen-plugin-runtime.ts:481-492`
+
+---
+
+### resetClipRegion
+
+Remove the current clipping region.
+
+**Next-Gen API:**
+```lua
+resetClipRegion()
+```
+
+**Legacy API:**
+```lua
+resetClipRegion(widgetId)
+```
+
+**Source:** `types/plugin.ts:110`, `core/next-gen-plugin-runtime.ts:494-504`
+
+---
+
+### setBlendMode
+
+Set the blend mode for drawing operations.
+
+**Next-Gen API:**
+```lua
+setBlendMode(mode)
+```
+
+**Legacy API:**
+```lua
+setBlendMode(widgetId, mode)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| mode | string | Yes | Blend mode name |
+
+**Available modes:**
+- `"normal"` - Default blending
+- `"multiply"` - Multiply colors (darkens)
+- `"screen"` - Screen colors (lightens)
+- `"overlay"` - Overlay blending
+- `"darken"` - Use darker color
+- `"lighten"` - Use lighter color
+- `"color-dodge"` - Brighten to reflect blend
+- `"color-burn"` - Darken to reflect blend
+- `"hard-light"` - Hard light effect
+- `"soft-light"` - Soft light effect
+- `"difference"` - Absolute difference
+- `"exclusion"` - Similar to difference, lower contrast
+
+**Source:** `types/plugin.ts:111`, `core/next-gen-plugin-runtime.ts:506-517`
+
+---
+
+### setGlobalAlpha
+
+Set the global transparency for all subsequent drawing operations.
+
+**Next-Gen API:**
+```lua
+setGlobalAlpha(alpha)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| alpha | number | Yes | Transparency value (0.0 = transparent, 1.0 = opaque) |
+
+**Example:**
+```lua
+setGlobalAlpha(0.5)  -- 50% transparent
+drawRect(10, 10, 100, 100, "#3498db")
+setGlobalAlpha(1.0)  -- Reset to fully opaque
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:519-530`
+
+---
 
 ## Batch Operations
 
-- `startBatch()` - Start batching draw operations
-- `endBatch()` - End batching and execute
+### startBatch / endBatch
+
+Batch multiple drawing operations together for improved performance. Useful when drawing many shapes at once.
+
+**Next-Gen API:**
+```lua
+local batch = startBatch()
+-- ... multiple draw calls ...
+endBatch(batch)
+```
+
+**Legacy API:**
+```lua
+beginBatch(widgetId)
+-- ... multiple draw calls ...
+endBatch(widgetId)
+```
+
+**Example:**
+```lua
+local batch = startBatch()
+for i = 1, 100 do
+  drawRect(i * 5, i * 3, 10, 10, "#3498db")
+end
+endBatch(batch)
+```
+
+**Source:** `types/plugin.ts:120-121`, `core/next-gen-plugin-runtime.ts:533-550`
+
+---
+
+## Canvas Dimensions
+
+### getCanvasWidth
+
+Get the width of the active widget's canvas.
+
+**Next-Gen API:**
+```lua
+local width = getCanvasWidth()
+```
+
+**Returns:** `number` - Canvas width in pixels (default: 400)
+
+**Source:** `core/next-gen-plugin-runtime.ts:421-428`
+
+---
+
+### getCanvasHeight
+
+Get the height of the active widget's canvas.
+
+**Next-Gen API:**
+```lua
+local height = getCanvasHeight()
+```
+
+**Returns:** `number` - Canvas height in pixels (default: 300)
+
+**Source:** `core/next-gen-plugin-runtime.ts:430-437`
+
+---
+
+### getCanvasSize
+
+Get both width and height of the active widget's canvas.
+
+**Next-Gen API:**
+```lua
+local size = getCanvasSize()
+print(size.width, size.height)
+```
+
+**Returns:** `{width: number, height: number}` - Canvas dimensions
+
+**Source:** `core/next-gen-plugin-runtime.ts:439-446`
+
+---
+
+## Pixel Operations
+
+### getPixel
+
+Get the color of a pixel at the specified position.
+
+**Legacy API:**
+```lua
+local pixel = getPixel(widgetId, x, y)
+-- pixel.r, pixel.g, pixel.b, pixel.a
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | Target widget ID |
+| x | number | Yes | X position |
+| y | number | Yes | Y position |
+
+**Returns:** `{r: number, g: number, b: number, a: number}` - RGBA values (0-255)
+
+**Source:** `types/plugin.ts:116`
+
+---
+
+### setPixel
+
+Set the color of a pixel at the specified position.
+
+**Legacy API:**
+```lua
+setPixel(widgetId, x, y, r, g, b, a?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| widgetId | string | Yes | - | Target widget ID |
+| x | number | Yes | - | X position |
+| y | number | Yes | - | Y position |
+| r | number | Yes | - | Red value (0-255) |
+| g | number | Yes | - | Green value (0-255) |
+| b | number | Yes | - | Blue value (0-255) |
+| a | number | No | 255 | Alpha value (0-255) |
+
+**Source:** `types/plugin.ts:117`
+
+---
+
+## Render Hints
+
+### setRenderHint
+
+Set rendering hints for quality/performance tradeoffs.
+
+**Legacy API:**
+```lua
+setRenderHint(widgetId, hint, enabled)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | Target widget ID |
+| hint | string | Yes | Hint name (see below) |
+| enabled | boolean | Yes | Enable or disable the hint |
+
+**Available hints:**
+- `"antialiasing"` - Smooth edges on shapes
+- `"smoothing"` - Image smoothing/interpolation
+- `"pixelated"` - Disable smoothing for pixel-art style
+
+**Example:**
+```lua
+-- Disable smoothing for crisp pixel art
+setRenderHint(widgetId, "pixelated", true)
+
+-- Enable antialiasing for smooth curves
+setRenderHint(widgetId, "antialiasing", true)
+```
+
+**Source:** `types/plugin.ts:122`
