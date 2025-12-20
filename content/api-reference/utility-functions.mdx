@@ -1,22 +1,429 @@
 # Utility Functions
 
-Helper functions for common operations.
+Helper functions for logging, time operations, color processing, and debugging.
 
-> This page will be populated with verified API documentation from the source code.
+All functions documented here have been verified against the source code in `types/plugin.ts` and `core/plugin-engine.ts`.
+
+---
 
 ## Logging
 
-- `log()` - Log a message with level
+### log
 
-## Time
+Log a message with an optional severity level. Messages are emitted to the plugin log system.
 
-- `getCurrentTime()` - Get current timestamp
-- `formatTime()` - Format timestamp as string
+```lua
+log(message, level?)
+```
 
-## Colors
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| message | string | Yes | - | The message to log |
+| level | string | No | "info" | Log level: "debug", "info", "warn", "error" |
 
-- `colorize()` - Process color codes
+**Source:** `types/plugin.ts:166`, `core/plugin-engine.ts:1716-1728`
 
-## Debugging
+**Example:**
+```lua
+log("Plugin initialized")
+log("Processing 5 items", "info")
+log("Connection unstable", "warn")
+log("Failed to load data", "error")
+log("Variable value: " .. tostring(myVar), "debug")
+```
 
-- `tprint()` - Print table structure
+---
+
+## Terminal Output
+
+### print
+
+Print a message to the terminal output. The message appears in the main terminal window with the configured print color.
+
+```lua
+print(message)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| message | string | Yes | The message to print |
+
+**Source:** `types/plugin.ts:171`, `core/next-gen-plugin-runtime.ts:852-854`
+
+**Example:**
+```lua
+print("Hello, world!")
+print("Current health: " .. health)
+```
+
+---
+
+### utilprint
+
+Print a utility message to the terminal. Similar to `print`, but uses a separate color (configurable in settings) to distinguish plugin output from MUD text.
+
+```lua
+utilprint(message)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| message | string | Yes | The message to print |
+
+**Source:** `types/plugin.ts:172`, `core/next-gen-plugin-runtime.ts:856-858`
+
+**Example:**
+```lua
+utilprint("[MyPlugin] Loading configuration...")
+utilprint("[MyPlugin] Ready!")
+```
+
+---
+
+### tprint
+
+Print a table structure to the terminal for debugging. Recursively displays all keys and values in a formatted, readable way.
+
+```lua
+tprint(table, indent?, done?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| table | table | Yes | - | The table to print |
+| indent | number | No | 0 | Initial indentation level (internal use) |
+| done | set | No | {} | Set of visited tables to prevent cycles (internal use) |
+
+**Source:** `core/next-gen-plugin-runtime.ts:861-893`
+
+**Example:**
+```lua
+local player = {
+  name = "Hero",
+  level = 50,
+  stats = {
+    hp = 100,
+    mp = 50
+  },
+  equipment = {"sword", "shield", "helmet"}
+}
+
+tprint(player)
+
+-- Output:
+-- "name" = "Hero"
+-- "level" = 50
+-- "stats":
+--   "hp" = 100
+--   "mp" = 50
+-- "equipment":
+--   1 = "sword"
+--   2 = "shield"
+--   3 = "helmet"
+```
+
+---
+
+## Time Functions
+
+### getCurrentTime
+
+Get the current timestamp in milliseconds since Unix epoch.
+
+```lua
+getCurrentTime()
+```
+
+**Returns:** `number` - Current time in milliseconds.
+
+**Source:** `types/plugin.ts:167`, `core/plugin-engine.ts:1731-1737`
+
+**Example:**
+```lua
+local startTime = getCurrentTime()
+-- ... do some work ...
+local endTime = getCurrentTime()
+print("Operation took " .. (endTime - startTime) .. "ms")
+```
+
+---
+
+### formatTime
+
+Format a timestamp as a human-readable time string.
+
+```lua
+formatTime(timestamp, format?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| timestamp | number | Yes | - | Timestamp in milliseconds |
+| format | string | No | "HH:mm:ss" | Time format (currently only supports default) |
+
+**Returns:** `string` - Formatted time string (e.g., "14:30:45").
+
+**Source:** `types/plugin.ts:168`, `core/plugin-engine.ts:1740-1751`
+
+**Example:**
+```lua
+local now = getCurrentTime()
+print("Current time: " .. formatTime(now))
+-- Output: "Current time: 14:30:45"
+
+-- Track when something happened
+local lastUpdate = getCurrentTime()
+print("Last update: " .. formatTime(lastUpdate))
+```
+
+---
+
+## Color Functions
+
+### colorize
+
+Process color codes in text for different output formats. Supports MXP/ANSI style color codes.
+
+```lua
+colorize(text, format?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| text | string | Yes | - | Text containing color codes |
+| format | string | No | "canvas" | Output format (see below) |
+
+**Format Options:**
+
+| Format | Description |
+|--------|-------------|
+| "canvas" | Returns array of segments with text and hexColor properties for canvas drawing (default) |
+| "terminal" | Returns text with ANSI escape codes for terminal output |
+| "ansi" | Same as "terminal" |
+| "segments" | Same as "canvas", returns parsed segments |
+| "strip" | Returns plain text with all color codes removed |
+
+**Returns:** Varies based on format - segments array, ANSI string, or plain string.
+
+**Source:** `types/plugin.ts:175`, `core/plugin-engine.ts:2014-2043`
+
+**Example:**
+```lua
+-- For canvas drawing (default)
+local segments = colorize("@rRed @gGreen @bBlue")
+-- Returns: [{text="Red ", hexColor="#ff0000"}, {text="Green ", hexColor="#00ff00"}, ...]
+
+-- For terminal output
+local ansiText = colorize("@rDanger! @wNormal text", "terminal")
+-- Returns text with ANSI escape codes
+
+-- Strip all color codes
+local plain = colorize("@rColored @gText", "strip")
+-- Returns: "Colored Text"
+```
+
+### Common Color Codes
+
+| Code | Color |
+|------|-------|
+| @r | Red |
+| @g | Green |
+| @b | Blue |
+| @y | Yellow |
+| @m | Magenta |
+| @c | Cyan |
+| @w | White |
+| @x | Reset/Default |
+
+---
+
+### stripAnsiCodes
+
+Remove all ANSI escape codes from text.
+
+```lua
+stripAnsiCodes(text)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| text | string | Yes | Text containing ANSI codes |
+
+**Returns:** `string` - Plain text with all ANSI codes removed.
+
+**Source:** `core/next-gen-plugin-runtime.ts:473-475`
+
+**Example:**
+```lua
+local coloredText = "\x1b[31mRed\x1b[0m Normal"
+local plain = stripAnsiCodes(coloredText)
+-- Returns: "Red Normal"
+```
+
+---
+
+### parseAnsiText
+
+Parse ANSI-colored text into segments for rendering.
+
+```lua
+parseAnsiText(text)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| text | string | Yes | Text with ANSI escape codes |
+
+**Returns:** `table` - Array of segments with `{text, color}` properties.
+
+**Source:** `core/next-gen-plugin-runtime.ts:458-466`
+
+**Example:**
+```lua
+local segments = parseAnsiText("\x1b[31mRed\x1b[0m Normal")
+for i, seg in ipairs(segments) do
+  print(seg.text .. " -> " .. (seg.color or "default"))
+end
+```
+
+---
+
+## Type Conversion
+
+### tostring
+
+Convert any value to a string representation.
+
+```lua
+tostring(value)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| value | any | Yes | Value to convert |
+
+**Returns:** `string` - String representation of the value.
+
+**Source:** Standard Lua / `core/next-gen-plugin-runtime.ts:2680`
+
+**Example:**
+```lua
+print("Number: " .. tostring(42))
+print("Boolean: " .. tostring(true))
+print("Table: " .. tostring({1, 2, 3}))
+```
+
+---
+
+### tonumber
+
+Convert a string to a number.
+
+```lua
+tonumber(value, base?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| value | string | Yes | - | String to convert |
+| base | number | No | 10 | Number base (2-36) |
+
+**Returns:** `number | nil` - The numeric value, or `nil` if conversion fails.
+
+**Source:** Standard Lua / `core/next-gen-plugin-runtime.ts:2681`
+
+**Example:**
+```lua
+local num = tonumber("42")        -- 42
+local hex = tonumber("ff", 16)    -- 255
+local bin = tonumber("1010", 2)   -- 10
+local invalid = tonumber("hello") -- nil
+```
+
+---
+
+### type
+
+Get the type of a value as a string.
+
+```lua
+type(value)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| value | any | Yes | Value to check |
+
+**Returns:** `string` - Type name: "nil", "number", "string", "boolean", "table", "function".
+
+**Source:** Standard Lua / `core/next-gen-plugin-runtime.ts:2679`
+
+**Example:**
+```lua
+print(type(42))         -- "number"
+print(type("hello"))    -- "string"
+print(type(true))       -- "boolean"
+print(type({1, 2, 3}))  -- "table"
+print(type(print))      -- "function"
+print(type(nil))        -- "nil"
+```
+
+---
+
+## Practical Examples
+
+### Timed Operations
+
+```lua
+-- Measure execution time
+function timeOperation(name, func)
+  local start = getCurrentTime()
+  func()
+  local elapsed = getCurrentTime() - start
+  log(name .. " completed in " .. elapsed .. "ms", "debug")
+end
+
+timeOperation("Data processing", function()
+  -- Do some work
+  for i = 1, 1000 do
+    local x = i * i
+  end
+end)
+```
+
+### Debug Logger
+
+```lua
+-- Create a debug logger with timestamps
+local DEBUG = true
+
+function debug(message)
+  if DEBUG then
+    local time = formatTime(getCurrentTime())
+    utilprint("[" .. time .. "] DEBUG: " .. message)
+  end
+end
+
+debug("Starting initialization...")
+```
+
+### Color-Aware Output
+
+```lua
+-- Print colored status messages
+function status(message, level)
+  local prefix = {
+    info = "@w[INFO] ",
+    warn = "@y[WARN] ",
+    error = "@r[ERROR] ",
+    success = "@g[OK] "
+  }
+
+  local colored = colorize((prefix[level] or "") .. message .. "@x", "terminal")
+  print(colored)
+end
+
+status("Plugin loaded", "success")
+status("Connection unstable", "warn")
+status("Failed to save", "error")
+```
