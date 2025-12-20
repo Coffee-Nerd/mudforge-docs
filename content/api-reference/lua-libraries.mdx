@@ -1,57 +1,724 @@
 # Lua Standard Libraries
 
-Standard Lua libraries available in the plugin environment.
+Standard Lua libraries available in the MudForge plugin environment. These are JavaScript implementations that mirror Lua's standard library behavior.
 
-> This page will be populated with verified API documentation from the source code.
+All functions documented here have been verified against the source code in `core/next-gen-plugin-runtime.ts`.
+
+---
 
 ## table
 
-Table manipulation functions.
+Table manipulation functions for working with Lua tables (arrays and dictionaries).
 
-- `table.concat()` - Concatenate array elements
-- `table.insert()` - Insert element
-- `table.remove()` - Remove element
-- `table.sort()` - Sort table
-- `table.pack()` - Pack arguments into table
-- `table.unpack()` - Unpack table to arguments
+**Source:** `core/next-gen-plugin-runtime.ts:674-850`
+
+### table.concat
+
+Concatenate array elements into a string.
+
+```lua
+table.concat(tbl, sep?, i?, j?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| tbl | table | Yes | - | The array to concatenate |
+| sep | string | No | "" | Separator between elements |
+| i | number | No | 1 | Start index |
+| j | number | No | #tbl | End index |
+
+**Returns:** `string` - Concatenated string.
+
+**Example:**
+```lua
+local arr = {"a", "b", "c"}
+print(table.concat(arr))        -- "abc"
+print(table.concat(arr, ", "))  -- "a, b, c"
+print(table.concat(arr, "-", 1, 2))  -- "a-b"
+```
+
+---
+
+### table.insert
+
+Insert an element into an array.
+
+```lua
+table.insert(tbl, pos?, value)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| tbl | table | Yes | The array to modify |
+| pos | number | No | Position to insert (if omitted, appends to end) |
+| value | any | Yes | Value to insert |
+
+**Example:**
+```lua
+local arr = {1, 2, 3}
+table.insert(arr, 4)       -- {1, 2, 3, 4}
+table.insert(arr, 2, 1.5)  -- {1, 1.5, 2, 3, 4}
+```
+
+---
+
+### table.remove
+
+Remove and return an element from an array.
+
+```lua
+table.remove(tbl, pos?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| tbl | table | Yes | - | The array to modify |
+| pos | number | No | #tbl | Position to remove (defaults to last element) |
+
+**Returns:** `any` - The removed element.
+
+**Example:**
+```lua
+local arr = {1, 2, 3, 4}
+local last = table.remove(arr)     -- returns 4, arr = {1, 2, 3}
+local second = table.remove(arr, 2) -- returns 2, arr = {1, 3}
+```
+
+---
+
+### table.sort
+
+Sort an array in-place.
+
+```lua
+table.sort(tbl, comp?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| tbl | table | Yes | The array to sort |
+| comp | function | No | Comparison function(a, b) returning true if a < b |
+
+**Example:**
+```lua
+local arr = {3, 1, 4, 1, 5}
+table.sort(arr)  -- {1, 1, 3, 4, 5}
+
+-- Custom sort (descending)
+table.sort(arr, function(a, b) return a > b end)  -- {5, 4, 3, 1, 1}
+
+-- Sort by property
+local players = {{name="Bob", score=10}, {name="Alice", score=20}}
+table.sort(players, function(a, b) return a.score > b.score end)
+```
+
+---
+
+### table.maxn
+
+Find the largest positive numeric index in a table.
+
+```lua
+table.maxn(tbl)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| tbl | table | Yes | The table to check |
+
+**Returns:** `number` - The largest numeric index, or 0 if none.
+
+**Example:**
+```lua
+local t = {}
+t[1] = "a"
+t[100] = "b"
+print(table.maxn(t))  -- 100
+```
+
+---
+
+### table.unpack
+
+Unpack array elements as multiple return values.
+
+```lua
+table.unpack(tbl, i?, j?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| tbl | table | Yes | - | The array to unpack |
+| i | number | No | 1 | Start index |
+| j | number | No | #tbl | End index |
+
+**Returns:** Multiple values from the array.
+
+**Example:**
+```lua
+local arr = {10, 20, 30}
+local a, b, c = table.unpack(arr)  -- a=10, b=20, c=30
+print(a, b, c)
+
+-- Partial unpack
+local x, y = table.unpack(arr, 2, 3)  -- x=20, y=30
+```
+
+---
 
 ## math
 
-Mathematical functions.
+Mathematical functions and constants.
 
-- `math.abs()`, `math.floor()`, `math.ceil()`
-- `math.sin()`, `math.cos()`, `math.tan()`
-- `math.random()`, `math.randomseed()`
-- `math.min()`, `math.max()`
-- `math.sqrt()`, `math.pow()`
-- `math.pi`, `math.huge`
+**Source:** `core/next-gen-plugin-runtime.ts:900-945`
+
+### Constants
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `math.pi` | 3.14159... | Pi (π) |
+| `math.huge` | Infinity | Positive infinity |
+
+### Basic Functions
+
+```lua
+math.abs(x)      -- Absolute value
+math.floor(x)    -- Round down
+math.ceil(x)     -- Round up
+math.min(...)    -- Minimum of arguments
+math.max(...)    -- Maximum of arguments
+math.sqrt(x)     -- Square root
+math.pow(x, y)   -- x raised to power y
+math.fmod(x, y)  -- Remainder of x/y
+```
+
+**Example:**
+```lua
+print(math.abs(-5))      -- 5
+print(math.floor(3.7))   -- 3
+print(math.ceil(3.2))    -- 4
+print(math.min(1, 5, 3)) -- 1
+print(math.max(1, 5, 3)) -- 5
+print(math.sqrt(16))     -- 4
+print(math.pow(2, 8))    -- 256
+```
+
+### Trigonometric Functions
+
+```lua
+math.sin(x)   -- Sine (x in radians)
+math.cos(x)   -- Cosine
+math.tan(x)   -- Tangent
+math.asin(x)  -- Arc sine
+math.acos(x)  -- Arc cosine
+math.atan(x)  -- Arc tangent
+math.atan2(y, x)  -- Arc tangent of y/x
+math.sinh(x)  -- Hyperbolic sine
+math.cosh(x)  -- Hyperbolic cosine
+math.tanh(x)  -- Hyperbolic tangent
+```
+
+### Angle Conversion
+
+```lua
+math.deg(radians)  -- Convert radians to degrees
+math.rad(degrees)  -- Convert degrees to radians
+```
+
+**Example:**
+```lua
+print(math.deg(math.pi))   -- 180
+print(math.rad(180))       -- 3.14159...
+```
+
+### Logarithmic Functions
+
+```lua
+math.log(x)      -- Natural logarithm
+math.log10(x)    -- Base-10 logarithm
+math.exp(x)      -- e^x
+```
+
+### Random Numbers
+
+```lua
+math.random()        -- Random float in [0, 1)
+math.random(m)       -- Random integer in [1, m]
+math.random(m, n)    -- Random integer in [m, n]
+math.randomseed(x)   -- Seed the random generator (no effect in browser)
+```
+
+**Example:**
+```lua
+print(math.random())        -- 0.7234... (random float)
+print(math.random(6))       -- 1-6 (dice roll)
+print(math.random(10, 20))  -- 10-20 (random in range)
+```
+
+### Special Functions
+
+```lua
+math.frexp(x)     -- Returns mantissa and exponent: m, e where x = m * 2^e
+math.ldexp(m, e)  -- Returns m * 2^e
+math.modf(x)      -- Returns integer and fractional parts
+```
+
+---
 
 ## string
 
 String manipulation functions.
 
-- `string.find()` - Find pattern
-- `string.match()` - Match pattern
-- `string.gsub()` - Global substitution
-- `string.format()` - Format string
-- `string.len()` - String length
-- `string.lower()`, `string.upper()`
-- `string.sub()` - Substring
+**Source:** `core/next-gen-plugin-runtime.ts:948-1125`
 
-## os (Web-Safe)
+### string.len
 
-Operating system functions (limited in browser).
+Get string length.
 
-- `os.clock()` - Get elapsed time
-- `os.date()` - Format date/time
-- `os.time()` - Get timestamp
-- `os.difftime()` - Time difference
+```lua
+string.len(s)
+-- or
+#s
+```
 
-## io (localStorage-Based)
+**Example:**
+```lua
+print(string.len("hello"))  -- 5
+print(#"hello")             -- 5
+```
 
-File I/O functions (uses localStorage in browser).
+---
 
-- `io.open()` - Open file
-- `io.read()` - Read from input
-- `io.write()` - Write to output
-- `io.close()` - Close file
+### string.sub
+
+Extract a substring.
+
+```lua
+string.sub(s, i, j?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| s | string | Yes | - | The string |
+| i | number | Yes | - | Start index (1-based, negative counts from end) |
+| j | number | No | -1 | End index |
+
+**Example:**
+```lua
+local s = "Hello, World!"
+print(string.sub(s, 1, 5))   -- "Hello"
+print(string.sub(s, 8))      -- "World!"
+print(string.sub(s, -6))     -- "World!"
+print(string.sub(s, -6, -2)) -- "World"
+```
+
+---
+
+### string.upper / string.lower
+
+Convert case.
+
+```lua
+string.upper(s)
+string.lower(s)
+```
+
+**Example:**
+```lua
+print(string.upper("hello"))  -- "HELLO"
+print(string.lower("HELLO"))  -- "hello"
+```
+
+---
+
+### string.rep
+
+Repeat a string.
+
+```lua
+string.rep(s, n, sep?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| s | string | Yes | String to repeat |
+| n | number | Yes | Number of repetitions |
+| sep | string | No | Separator between repetitions |
+
+**Example:**
+```lua
+print(string.rep("ab", 3))       -- "ababab"
+print(string.rep("x", 5, "-"))   -- "x-x-x-x-x"
+```
+
+---
+
+### string.reverse
+
+Reverse a string.
+
+```lua
+string.reverse(s)
+```
+
+**Example:**
+```lua
+print(string.reverse("hello"))  -- "olleh"
+```
+
+---
+
+### string.byte
+
+Get character code(s).
+
+```lua
+string.byte(s, i?, j?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| s | string | Yes | - | The string |
+| i | number | No | 1 | Start index |
+| j | number | No | i | End index |
+
+**Returns:** One or more numeric character codes.
+
+**Example:**
+```lua
+print(string.byte("ABC"))       -- 65
+print(string.byte("ABC", 2))    -- 66
+print(string.byte("ABC", 1, 3)) -- 65, 66, 67
+```
+
+---
+
+### string.char
+
+Create string from character codes.
+
+```lua
+string.char(...)
+```
+
+**Example:**
+```lua
+print(string.char(65, 66, 67))  -- "ABC"
+print(string.char(72, 105))     -- "Hi"
+```
+
+---
+
+### string.find
+
+Find pattern in string.
+
+```lua
+string.find(s, pattern, init?, plain?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| s | string | Yes | - | The string to search |
+| pattern | string | Yes | - | Pattern to find |
+| init | number | No | 1 | Start position |
+| plain | boolean | No | false | If true, pattern is plain text (no regex) |
+
+**Returns:** `start, end` indices, or `nil` if not found.
+
+**Example:**
+```lua
+local s = "Hello, World!"
+local start, finish = string.find(s, "World")
+print(start, finish)  -- 8, 12
+
+-- Plain text search
+local i, j = string.find("a.b.c", ".", 1, true)
+print(i, j)  -- 2, 2
+```
+
+---
+
+### string.match
+
+Extract pattern match.
+
+```lua
+string.match(s, pattern, init?)
+```
+
+**Returns:** Captured groups, or the whole match if no captures.
+
+**Example:**
+```lua
+local s = "name: John, age: 30"
+print(string.match(s, "name: (%w+)"))  -- "John"
+print(string.match(s, "age: (%d+)"))   -- "30"
+```
+
+---
+
+### string.gsub
+
+Global substitution.
+
+```lua
+string.gsub(s, pattern, repl, n?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| s | string | Yes | The string |
+| pattern | string | Yes | Pattern to replace |
+| repl | string/function/table | Yes | Replacement |
+| n | number | No | Max replacements |
+
+**Returns:** `new_string, count` (modified string and number of replacements).
+
+**Example:**
+```lua
+local s = "hello world"
+print(string.gsub(s, "l", "L"))     -- "heLLo worLd", 3
+print(string.gsub(s, "l", "L", 2))  -- "heLLo world", 2
+
+-- Function replacement
+local result = string.gsub("abc", ".", function(c)
+  return string.upper(c)
+end)
+print(result)  -- "ABC"
+```
+
+---
+
+### string.format
+
+Format a string (like C's sprintf).
+
+```lua
+string.format(formatstring, ...)
+```
+
+**Format Specifiers:**
+- `%s` - string
+- `%d` - integer
+- `%f` - float
+- `%x` - hexadecimal
+- `%%` - literal %
+
+**Example:**
+```lua
+print(string.format("Hello, %s!", "World"))     -- "Hello, World!"
+print(string.format("HP: %d/%d", 50, 100))      -- "HP: 50/100"
+print(string.format("Pi: %.2f", 3.14159))       -- "Pi: 3.14"
+print(string.format("Hex: %x", 255))            -- "Hex: ff"
+```
+
+---
+
+## os
+
+Operating system functions (web-safe implementation).
+
+**Source:** `core/next-gen-plugin-runtime.ts:1127-1175`
+
+### os.clock
+
+Get elapsed CPU time in seconds.
+
+```lua
+os.clock()
+```
+
+**Returns:** `number` - Elapsed time since page load (using `performance.now()`).
+
+**Example:**
+```lua
+local start = os.clock()
+-- ... do work ...
+local elapsed = os.clock() - start
+print("Took " .. elapsed .. " seconds")
+```
+
+---
+
+### os.time
+
+Get current Unix timestamp.
+
+```lua
+os.time(table?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| table | table | No | Date table with year, month, day, etc. |
+
+**Returns:** `number` - Unix timestamp in seconds.
+
+**Example:**
+```lua
+print(os.time())  -- Current timestamp
+
+-- Create timestamp from date
+local t = os.time({year=2024, month=6, day=15})
+```
+
+---
+
+### os.date
+
+Format a date/time.
+
+```lua
+os.date(format?, time?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| format | string | No | "%c" | Format string or "*t" for table |
+| time | number | No | now | Unix timestamp |
+
+**Returns:** Formatted string or table (if format is "*t").
+
+**Format Specifiers:**
+- `%Y` - 4-digit year
+- `%m` - month (01-12)
+- `%d` - day (01-31)
+- `%H` - hour (00-23)
+- `%M` - minute (00-59)
+- `%S` - second (00-59)
+- `%a` - abbreviated weekday
+- `%A` - full weekday
+- `%b` - abbreviated month
+- `%B` - full month
+
+**Example:**
+```lua
+print(os.date())                    -- "Sat Jun 15 14:30:45 2024"
+print(os.date("%Y-%m-%d"))          -- "2024-06-15"
+print(os.date("%H:%M:%S"))          -- "14:30:45"
+
+-- Get date table
+local t = os.date("*t")
+print(t.year, t.month, t.day)       -- 2024, 6, 15
+print(t.hour, t.min, t.sec)         -- 14, 30, 45
+print(t.wday)                       -- 7 (Saturday, 1=Sunday)
+```
+
+---
+
+### os.difftime
+
+Calculate time difference.
+
+```lua
+os.difftime(t2, t1)
+```
+
+**Returns:** `number` - Difference in seconds.
+
+**Example:**
+```lua
+local start = os.time()
+-- ... later ...
+local elapsed = os.difftime(os.time(), start)
+print("Elapsed: " .. elapsed .. " seconds")
+```
+
+---
+
+## Iterators
+
+Functions for iterating over tables.
+
+**Source:** `core/next-gen-plugin-runtime.ts:1393-1438`
+
+### pairs
+
+Iterate over all key-value pairs in a table.
+
+```lua
+for key, value in pairs(tbl) do
+  -- process
+end
+```
+
+**Example:**
+```lua
+local player = {name = "Hero", level = 50, class = "Warrior"}
+for k, v in pairs(player) do
+  print(k .. " = " .. tostring(v))
+end
+-- Output (order may vary):
+-- name = Hero
+-- level = 50
+-- class = Warrior
+```
+
+---
+
+### ipairs
+
+Iterate over array elements in order.
+
+```lua
+for index, value in ipairs(arr) do
+  -- process
+end
+```
+
+**Example:**
+```lua
+local items = {"sword", "shield", "potion"}
+for i, item in ipairs(items) do
+  print(i .. ": " .. item)
+end
+-- Output:
+-- 1: sword
+-- 2: shield
+-- 3: potion
+```
+
+> **Note:** `ipairs` stops at the first `nil` value. Use `pairs` for sparse arrays.
+
+---
+
+## Notes on JavaScript Implementation
+
+### Differences from Standard Lua
+
+1. **Table Indexing**: Lua tables are 1-indexed. The JavaScript implementation maintains this behavior for compatibility.
+
+2. **Random Numbers**: `math.randomseed()` has no effect since JavaScript's `Math.random()` cannot be seeded.
+
+3. **Pattern Matching**: String patterns use JavaScript regular expressions internally. Most common Lua patterns work, but complex Lua-specific patterns may behave differently.
+
+4. **File I/O**: The `io` library is not available in the browser environment.
+
+5. **os.execute**: Not available for security reasons.
+
+### Best Practices
+
+```lua
+-- Use ipairs for arrays (faster, ordered)
+local arr = {1, 2, 3, 4, 5}
+for i, v in ipairs(arr) do
+  print(v)
+end
+
+-- Use pairs for dictionaries
+local dict = {a = 1, b = 2, c = 3}
+for k, v in pairs(dict) do
+  print(k, v)
+end
+
+-- Check for nil before operations
+local value = myTable.key
+if value then
+  print(value)
+end
+
+-- Use table.concat for string building (more efficient than ..)
+local parts = {"Hello", " ", "World"}
+local result = table.concat(parts)  -- "Hello World"
+```
