@@ -2,21 +2,332 @@
 
 Functions for rendering text, managing fonts, and processing ANSI colors.
 
-> This page will be populated with verified API documentation from the source code.
+All functions documented here have been verified against the source code.
+
+---
 
 ## Text Drawing
 
-- `drawText()` - Draw text at a position
-- `drawTextWrapped()` - Draw text with word wrapping
-- `drawColoredText()` - Draw ANSI-colored text
-- `drawTextAligned()` - Draw text with alignment
+### drawText
+
+Draw text at a specified position.
+
+**Next-Gen API:**
+```lua
+drawText(text, x, y, color, font?)
+```
+
+**Legacy API:**
+```lua
+drawText(widgetId, text, x, y, font?, color?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| text | string | Yes | The text to draw |
+| x | number | Yes | X position |
+| y | number | Yes | Y position (baseline) |
+| color | string | Yes (Next-Gen) / No (Legacy) | Text color |
+| font | string | No | Font specification (e.g., "14px Arial") |
+
+> **Note:** Parameter order differs between Next-Gen (color before font) and Legacy (font before color).
+
+**Example:**
+```lua
+-- Next-Gen
+drawText("Hello World!", 10, 30, "#ffffff", "16px monospace")
+
+-- Legacy
+drawText(widgetId, "Hello World!", 10, 30, "16px monospace", "#ffffff")
+```
+
+**Source:** `types/plugin.ts:91`, `core/next-gen-plugin-runtime.ts:156-158`
+
+---
+
+### drawTextWrapped
+
+Draw text with automatic word wrapping at a maximum width.
+
+**Next-Gen API:**
+```lua
+drawTextWrapped(text, x, y, maxWidth, color, lineHeight?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| text | string | Yes | - | The text to draw |
+| x | number | Yes | - | X position |
+| y | number | Yes | - | Y position of first line |
+| maxWidth | number | Yes | - | Maximum width before wrapping |
+| color | string | Yes | - | Text color |
+| lineHeight | number | No | font size | Line height in pixels |
+
+**Example:**
+```lua
+local longText = "This is a long paragraph that will automatically wrap to fit within the specified width."
+drawTextWrapped(longText, 10, 20, 180, "#ffffff", 18)
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:300-311`
+
+---
+
+### drawColoredText
+
+Draw text containing ANSI escape codes with proper color rendering.
+
+**Next-Gen API:**
+```lua
+drawColoredText(text, x, y, font?, defaultColor?)
+```
+
+**Legacy API:**
+```lua
+drawColoredText(widgetId, text, x, y, font?, defaultColor?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| text | string | Yes | - | Text with ANSI color codes |
+| x | number | Yes | - | X position |
+| y | number | Yes | - | Y position |
+| font | string | No | "14px monospace" | Font specification |
+| defaultColor | string | No | "#ffffff" | Default color for uncolored text |
+
+**Example:**
+```lua
+-- Text with ANSI codes (e.g., from MUD output)
+local coloredText = "\027[31mRed\027[0m and \027[32mGreen\027[0m"
+drawColoredText(coloredText, 10, 20, "14px monospace", "#cccccc")
+```
+
+**Source:** `types/plugin.ts:176`, `core/next-gen-plugin-runtime.ts:160-163`
+
+---
+
+### drawTextAligned
+
+Draw text with horizontal alignment within a bounding box.
+
+**Legacy API:**
+```lua
+drawTextAligned(widgetId, text, x, y, width, height, alignment, font?, color?)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | Target widget ID |
+| text | string | Yes | The text to draw |
+| x | number | Yes | X position of bounding box |
+| y | number | Yes | Y position of bounding box |
+| width | number | Yes | Width of bounding box |
+| height | number | Yes | Height of bounding box |
+| alignment | string | Yes | "left", "center", or "right" |
+| font | string | No | Font specification |
+| color | string | No | Text color |
+
+**Example:**
+```lua
+-- Center text in a 200x50 box
+drawTextAligned(widgetId, "Centered Text", 10, 10, 200, 50, "center", "16px Arial", "#ffffff")
+```
+
+**Source:** `types/plugin.ts:92`
+
+---
+
+### drawTextWithShadow
+
+Draw text with a drop shadow effect.
+
+**Legacy API:**
+```lua
+drawTextWithShadow(widgetId, text, x, y, font, color, shadowColor, shadowOffsetX, shadowOffsetY)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| widgetId | string | Yes | Target widget ID |
+| text | string | Yes | The text to draw |
+| x | number | Yes | X position |
+| y | number | Yes | Y position |
+| font | string | Yes | Font specification |
+| color | string | Yes | Text color |
+| shadowColor | string | Yes | Shadow color |
+| shadowOffsetX | number | Yes | Horizontal shadow offset |
+| shadowOffsetY | number | Yes | Vertical shadow offset |
+
+**Example:**
+```lua
+drawTextWithShadow(widgetId, "Shadow Text", 50, 50, "24px Arial", "#ffffff", "#000000", 2, 2)
+```
+
+**Source:** `types/plugin.ts:93`
+
+---
 
 ## Font Management
 
-- `setFont()` - Set the current font
-- `measureText()` - Measure text dimensions
+### setFont
+
+Set the current font for subsequent text drawing operations.
+
+**Next-Gen API:**
+```lua
+setFont(family, size, weight?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| family | string | Yes | - | Font family name (e.g., "Arial", "monospace") |
+| size | number | Yes | - | Font size in pixels |
+| weight | string | No | "normal" | Font weight ("normal", "bold", etc.) |
+
+**Example:**
+```lua
+setFont("Arial", 16, "bold")
+drawText("Bold Arial Text", 10, 30, "#ffffff")
+
+setFont("monospace", 14)
+drawText("Monospace Text", 10, 60, "#00ff00")
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:287-298`
+
+---
+
+### measureText
+
+Measure the dimensions of text without drawing it.
+
+**Next-Gen API:**
+```lua
+local dimensions = measureText(text, font?)
+-- dimensions.width, dimensions.height
+```
+
+**Legacy API:**
+```lua
+local dimensions = measureText(text, font)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| text | string | Yes | - | The text to measure |
+| font | string | No (Next-Gen) / Yes (Legacy) | "14px monospace" | Font specification |
+
+**Returns:** `{width: number, height: number}` - Text dimensions in pixels
+
+**Example:**
+```lua
+local size = measureText("Hello World!", "16px Arial")
+print("Width: " .. size.width .. ", Height: " .. size.height)
+
+-- Use for centering text
+local text = "Centered"
+local size = measureText(text, "14px monospace")
+local canvasWidth = getCanvasWidth()
+local x = (canvasWidth - size.width) / 2
+drawText(text, x, 50, "#ffffff")
+```
+
+**Source:** `types/plugin.ts:94`, `core/next-gen-plugin-runtime.ts:313-348`
+
+---
 
 ## ANSI Processing
 
-- `parseAnsiText()` - Parse ANSI codes from text
-- `stripAnsiCodes()` - Remove ANSI codes from text
+### parseAnsiText
+
+Parse text containing ANSI escape codes into an array of styled segments.
+
+**Next-Gen API:**
+```lua
+local segments = parseAnsiText(text)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| text | string | Yes | Text containing ANSI escape codes |
+
+**Returns:** Array of segment objects with the following properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| text | string | The text content of this segment |
+| color | string | Foreground color |
+| backgroundColor | string? | Background color (if set) |
+| bold | boolean? | Bold formatting |
+| italic | boolean? | Italic formatting |
+| underline | boolean? | Underline formatting |
+| charCount | number | Character count (JavaScript string length) |
+
+**Example:**
+```lua
+local text = "\027[1;31mBold Red\027[0m Normal \027[32mGreen\027[0m"
+local segments = parseAnsiText(text)
+
+for i, seg in ipairs(segments) do
+  print("Text: " .. seg.text .. ", Color: " .. seg.color)
+  if seg.bold then
+    print("  (bold)")
+  end
+end
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:458-466`
+
+---
+
+### stripAnsiCodes
+
+Remove all ANSI escape codes from text, returning plain text.
+
+**Next-Gen API:**
+```lua
+local plainText = stripAnsiCodes(text)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| text | string | Yes | Text containing ANSI escape codes |
+
+**Returns:** `string` - Plain text with all ANSI codes removed
+
+**Example:**
+```lua
+local coloredText = "\027[31mRed\027[0m and \027[32mGreen\027[0m"
+local plain = stripAnsiCodes(coloredText)
+print(plain)  -- Output: "Red and Green"
+
+-- Useful for measuring text width without color codes
+local width = measureText(stripAnsiCodes(coloredText), "14px monospace").width
+```
+
+**Source:** `core/next-gen-plugin-runtime.ts:473-475`
+
+---
+
+## Color Utilities
+
+### colorize
+
+Process color codes in text and return in various formats.
+
+**API:**
+```lua
+local result = colorize(text, format?)
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| text | string | Yes | - | Text with color codes |
+| format | string | No | "ansi" | Output format |
+
+**Formats:**
+- `"ansi"` - Return text with ANSI codes
+- `"segments"` - Return array of styled segments
+- `"strip"` - Return plain text without codes
+
+**Source:** `types/plugin.ts:175`
