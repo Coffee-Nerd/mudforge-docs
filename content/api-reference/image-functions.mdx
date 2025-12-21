@@ -97,30 +97,23 @@ drawImage("tileset", 100, 100, 32, 32, 1.0, 0, 0, 0, 32, 32)
 ## Complete Image Example
 
 ```lua
--- Complete image rendering example
-local plugin = {}
+-- Sprite display example
+print("Loading sprites...")
 
-local playerImage = nil
-local tilesetLoaded = false
+-- Load images
+loadImage("player", "/plugins/my-plugin/player.png")
+loadImage("tileset", "/plugins/my-plugin/tiles.png")
+loadImage("background", "/plugins/my-plugin/bg.jpg")
 
-function plugin.onLoad()
-  -- Load images
-  loadImage("player", "/plugins/my-plugin/player.png")
-  loadImage("tileset", "/plugins/my-plugin/tiles.png")
-  loadImage("background", "/plugins/my-plugin/bg.jpg")
+-- Create widget
+local widget = createWidget({
+  type = "canvas",
+  title = "Sprite Display",
+  width = 400,
+  height = 300
+})
 
-  -- Create a widget to display sprites
-  local spriteWidget = createWidget({
-    type = "canvas",
-    title = "Sprite Display",
-    width = 400,
-    height = 300,
-    x = 100,
-    y = 100
-  })
-
-  setActiveWidget(spriteWidget)
-
+local function draw()
   -- Draw background
   drawImage("background", 0, 0, 400, 300)
 
@@ -129,14 +122,18 @@ function plugin.onLoad()
   local tileY = 2 * 32
   drawImage("tileset", 50, 50, 64, 64, 1.0, 0, tileX, tileY, 32, 32)
 
-  -- Draw player with some transparency
+  -- Draw player with transparency
   drawImage("player", 100, 100, 48, 48, 0.9)
 
-  -- Draw rotated player (facing different direction)
-  drawImage("player", 200, 100, 48, 48, 1.0, math.pi / 2)  -- 90 degrees
-
-  print("Sprite demo loaded!")
+  -- Draw rotated player (90 degrees)
+  drawImage("player", 200, 100, 48, 48, 1.0, math.pi / 2)
 end
 
-return plugin
+registerWidgetEvent(widget, "resize", function() draw() end)
+
+function init()
+  draw()
+end
+
+print("Sprites loaded!")
 ```
