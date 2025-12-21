@@ -275,111 +275,76 @@ local visitedRooms = loadTable("visited_rooms") or {}
 ## Complete Persistence Example
 
 ```lua
--- Complete data persistence example
-local plugin = {}
-
--- Plugin state
-local state = {
-  character = nil,
-  config = nil,
-  statistics = nil
-}
+-- Statistics tracking plugin
+print("Loading stats tracker...")
 
 -- Default configuration
-local defaultConfig = {
+local config = loadTable("my_plugin_config") or {
   autoHeal = true,
   healThreshold = 30,
-  autoLoot = true,
-  announceLevel = true
+  autoLoot = true
 }
 
 -- Default statistics
-local defaultStats = {
+local stats = loadTable("my_plugin_stats") or {
   kills = 0,
   deaths = 0,
   goldEarned = 0,
-  damageDealt = 0,
-  damageTaken = 0,
   sessionsPlayed = 0
 }
 
-function plugin.onLoad()
-  -- Load saved data or use defaults
-  state.config = loadTable("my_plugin_config") or defaultConfig
-  state.statistics = loadTable("my_plugin_stats") or defaultStats
-  state.character = loadTable("my_plugin_character") or {}
+-- Increment session counter
+stats.sessionsPlayed = stats.sessionsPlayed + 1
+saveTable("my_plugin_stats", stats)
 
-  -- Increment session counter
-  state.statistics.sessionsPlayed = state.statistics.sessionsPlayed + 1
+echo("Session #" .. stats.sessionsPlayed, "#00ff00")
 
-  echo("Plugin loaded! Session #" .. state.statistics.sessionsPlayed, "#00ff00")
-
-  -- Display current stats
-  if state.statistics.kills > 0 then
-    echo("Total kills: " .. state.statistics.kills)
-    echo("Total deaths: " .. state.statistics.deaths)
-    local kd = state.statistics.kills / math.max(1, state.statistics.deaths)
-    echo(string.format("K/D Ratio: %.2f", kd))
-  end
-
-  -- Register config command
-  registerCommand("myconfig", function(args)
-    if args == "autoheal on" then
-      state.config.autoHeal = true
-      saveTable("my_plugin_config", state.config)
+-- Config command
+registerCommand("myconfig", function(args)
+  if args[1] == "autoheal" then
+    if args[2] == "on" then
+      config.autoHeal = true
+      saveTable("my_plugin_config", config)
       echo("Auto-heal enabled")
-    elseif args == "autoheal off" then
-      state.config.autoHeal = false
-      saveTable("my_plugin_config", state.config)
+    elseif args[2] == "off" then
+      config.autoHeal = false
+      saveTable("my_plugin_config", config)
       echo("Auto-heal disabled")
-    else
-      echo("Current config:")
-      echo("  Auto-heal: " .. tostring(state.config.autoHeal))
-      echo("  Heal threshold: " .. state.config.healThreshold .. "%")
-      echo("  Auto-loot: " .. tostring(state.config.autoLoot))
     end
-  end, "View/change plugin configuration")
+  else
+    echo("Auto-heal: " .. tostring(config.autoHeal))
+    echo("Heal threshold: " .. config.healThreshold .. "%")
+  end
+end, "View/change config")
 
-  -- Register stats command
-  registerCommand("mystats", function()
-    echo("=== Statistics ===")
-    echo("Kills: " .. state.statistics.kills)
-    echo("Deaths: " .. state.statistics.deaths)
-    echo("Gold earned: " .. state.statistics.goldEarned)
-    echo("Damage dealt: " .. state.statistics.damageDealt)
-    echo("Damage taken: " .. state.statistics.damageTaken)
-    echo("Sessions: " .. state.statistics.sessionsPlayed)
-  end, "Show accumulated statistics")
+-- Stats command
+registerCommand("mystats", function()
+  echo("Kills: " .. stats.kills)
+  echo("Deaths: " .. stats.deaths)
+  echo("Gold: " .. stats.goldEarned)
+  echo("Sessions: " .. stats.sessionsPlayed)
+end, "Show statistics")
 
-  -- Set up triggers to track statistics
-  addTrigger("is DEAD", function(line)
-    if line:find("You have slain") then
-      state.statistics.kills = state.statistics.kills + 1
-    end
-  end)
+-- Track kills
+addTrigger("You have slain", function()
+  stats.kills = stats.kills + 1
+  saveTable("my_plugin_stats", stats)
+end)
 
-  addTrigger("You have died", function()
-    state.statistics.deaths = state.statistics.deaths + 1
-    saveTable("my_plugin_stats", state.statistics)
-    echo("Death recorded. Total: " .. state.statistics.deaths, "#ff0000")
-  end)
+-- Track deaths
+addTrigger("You have died", function()
+  stats.deaths = stats.deaths + 1
+  saveTable("my_plugin_stats", stats)
+  echo("Deaths: " .. stats.deaths, "#ff0000")
+end)
 
-  addTrigger("You receive (%d+) gold", function(line, matches)
-    local gold = tonumber(matches[1]) or 0
-    state.statistics.goldEarned = state.statistics.goldEarned + gold
-  end, { type = "regex" })
-end
+-- Track gold
+addTrigger("You receive (%d+) gold", function(line, matches)
+  stats.goldEarned = stats.goldEarned + tonumber(matches[1])
+  saveTable("my_plugin_stats", stats)
+end, { type = "regex" })
 
-function plugin.onUnload()
-  -- Save all data before unloading
-  saveTable("my_plugin_config", state.config)
-  saveTable("my_plugin_stats", state.statistics)
-  saveTable("my_plugin_character", state.character)
-
-  echo("Plugin data saved!", "#888888")
-end
-
-return plugin
+print("Stats tracker loaded!")
 ```
 
 ---
