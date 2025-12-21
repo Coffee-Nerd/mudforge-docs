@@ -17,43 +17,29 @@ Plugins are written in Lua and can:
 
 ```lua
 -- My First Plugin
-print("My Plugin loading...")
+print("Loading...")
 
--- Create a canvas widget
-local myWidget = createWidget({
+local widget = createWidget({
   type = "canvas",
   title = "My Widget",
-  x = 100,
-  y = 100,
   width = 200,
   height = 150
 })
 
--- Drawing function
 local function draw()
-  setActiveWidget(myWidget)
-  clear("#1a1a2e")
-  drawRect(10, 10, 180, 130, "#4a4a6a")
-  drawText("Hello MudForge!", 20, 50, "#ffffff")
+  clear("#1e1e2e")
+  drawRect(10, 10, 180, 130, "#89b4fa")
+  drawCircle(100, 75, 40, "#f38ba8")
+  drawText("Hello!", 70, 80, "#cdd6f4")
 end
 
--- Redraw on resize
-registerWidgetEvent(myWidget, "resize", function(eventData)
-  draw()
-end)
+registerWidgetEvent(widget, "resize", function() draw() end)
 
--- Initial draw after canvas is ready
 function init()
   draw()
 end
 
--- Add a command
-registerCommand("hello", function(args)
-  local name = args[1] or "world"
-  print("Hello, " .. name .. "!")
-end, "Say hello")
-
-print("Plugin loaded!")
+print("Loaded!")
 ```
 
 ## Sections
