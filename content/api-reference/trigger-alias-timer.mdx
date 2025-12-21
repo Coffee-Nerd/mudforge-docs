@@ -455,94 +455,60 @@ clearTimeout(timerId)
 ## Complete Automation Example
 
 ```lua
--- Complete automation plugin example
-local plugin = {}
+-- Automation plugin
+print("Loading automation...")
 
-local triggers = {}
-local timers = {}
-local aliases = {}
+-- Auto-heal when health is low
+addTrigger("HP: (\\d+)/(\\d+)", function(line, matches)
+  local hp = tonumber(matches[1])
+  local maxHp = tonumber(matches[2])
+  local percent = (hp / maxHp) * 100
 
-function plugin.onLoad()
-  -- === TRIGGERS ===
+  if percent < 30 then
+    colourNote("red", "", "!!! LOW HEALTH !!!")
+    send("drink healing potion")
+  end
+end, { type = "regex" })
 
-  -- Auto-heal when health is low
-  triggers.lowHealth = addTrigger("HP: (\\d+)/(\\d+)", function(line, matches)
-    local hp = tonumber(matches[1])
-    local maxHp = tonumber(matches[2])
-    local percent = (hp / maxHp) * 100
+-- Auto-loot after kill
+addTrigger("is DEAD", function()
+  setTimeout(function()
+    send("get all corpse")
+  end, 500)
+end)
 
-    if percent < 30 then
-      colourNote("red", "", "!!! LOW HEALTH (" .. percent .. "%) !!!")
-      send("drink healing potion")
-    end
-  end, { type = "regex", priority = 10 })
-
-  -- Auto-loot
-  triggers.loot = addTrigger("is DEAD", function()
-    setTimeout(function()
-      send("get all corpse")
-    end, 500)
-  end)
-
-  -- Combat trigger group
-  triggers.combat1 = addTrigger("attacks you", attackHandler, { group = "combat" })
-  triggers.combat2 = addTrigger("swings at you", attackHandler, { group = "combat" })
-
-  -- === ALIASES ===
-
-  -- Quick movement aliases
-  aliases.run = addAlias("^run (.+)$", "", function(matches)
-    local direction = matches[1]
-    for i = 1, 5 do
-      send(direction)
-    end
-  end)
-
-  -- Quick attack alias
-  aliases.kill = addAlias("^kk (.+)$", "", function(matches)
-    toggleTriggerGroup("combat", true)
-    send("kill " .. matches[1])
-  end)
-
-  -- === TIMERS ===
-
-  -- Auto-save every 5 minutes
-  timers.autoSave = addTimer(300000, function()
-    send("save")
-    echo("Auto-saved!", "#888888")
-  end, true)
-
-  -- Periodic status check
-  timers.status = addTimer(60000, function()
-    send("score")
-  end, true)
-
-  echo("Automation plugin loaded!", "#00ff00")
-end
-
-function attackHandler(line)
-  -- React to being attacked
+-- Combat triggers
+local function attackHandler(line)
   echo("Under attack!", "#ff0000")
 end
 
-function plugin.onUnload()
-  -- Clean up triggers
-  for name, id in pairs(triggers) do
-    removeTrigger(id)
+addTrigger("attacks you", attackHandler, { group = "combat" })
+addTrigger("swings at you", attackHandler, { group = "combat" })
+
+-- Quick movement: /run north (runs 5 times)
+addAlias("^run (.+)$", "", function(matches)
+  local direction = matches[1]
+  for i = 1, 5 do
+    send(direction)
   end
+end)
 
-  -- Clean up timers
-  for name, id in pairs(timers) do
-    removeTimer(id)
-  end
+-- Quick attack: /kk goblin
+addAlias("^kk (.+)$", "", function(matches)
+  toggleTriggerGroup("combat", true)
+  send("kill " .. matches[1])
+end)
 
-  -- Clean up aliases
-  for name, id in pairs(aliases) do
-    removeAlias(id)
-  end
+-- Auto-save every 5 minutes
+addTimer(300000, function()
+  send("save")
+  echo("Auto-saved!", "#888888")
+end, true)
 
-  echo("Automation plugin unloaded", "#888888")
-end
+-- Status check every minute
+addTimer(60000, function()
+  send("score")
+end, true)
 
-return plugin
+print("Automation loaded!")
 ```
