@@ -32,24 +32,21 @@ local widgetId = createWidget(config)
 
 **Example:**
 ```lua
--- Create a canvas widget
 local mapWidget = createWidget({
   type = "canvas",
   title = "Map Widget",
   x = 100,
   y = 100,
   width = 400,
-  height = 300,
-  resizable = true,
-  movable = true
+  height = 300
 })
 
--- Set it as active for drawing
-setActiveWidget(mapWidget)
-
--- Now draw on it
-drawRect(0, 0, 400, 300, "#1a1a1a")
-drawText("Map View", 10, 20, "#ffffff")
+-- Widget is automatically active after creation
+-- Draw in init() when canvas is ready
+function init()
+  drawRect(0, 0, 400, 300, "#1a1a1a")
+  drawText("Map View", 10, 20, "#ffffff")
+end
 ```
 
 ---
@@ -68,10 +65,8 @@ destroyWidget(widgetId)
 
 **Example:**
 ```lua
--- Clean up when plugin unloads
-function plugin.onUnload()
-  destroyWidget(mapWidget)
-end
+-- Manually destroy a widget (rarely needed - cleanup is automatic)
+destroyWidget(mapWidget)
 ```
 
 ---
@@ -560,88 +555,63 @@ textWidgetSetTransparent(logWidget, true)
 
 ## Complete Widget Example
 
+This example shows multiple widgets with proper `setActiveWidget` usage:
+
 ```lua
--- Complete widget management example
-local plugin = {}
+-- Multi-widget example
+print("Loading...")
 
-local mapWidget = nil
-local statsWidget = nil
+-- Create map canvas
+local mapWidget = createWidget({
+  type = "canvas",
+  title = "World Map",
+  x = 100,
+  y = 100,
+  width = 400,
+  height = 300
+})
 
-function plugin.onLoad()
-  -- Create main map canvas
-  mapWidget = createWidget({
-    type = "canvas",
-    title = "World Map",
-    x = 100,
-    y = 100,
-    width = 400,
-    height = 300,
-    resizable = true
-  })
+-- Create stats text widget
+local statsWidget = createWidget({
+  type = "enhanced-text",
+  title = "Character Stats",
+  x = 510,
+  y = 100,
+  width = 200,
+  height = 300
+})
 
-  -- Create stats text widget
-  statsWidget = createWidget({
-    type = "enhanced-text",
-    title = "Character Stats",
-    x = 510,
-    y = 100,
-    width = 200,
-    height = 300
-  })
-
-  -- Set up map for drawing
-  setActiveWidget(mapWidget)
-  drawRect(0, 0, 400, 300, "#0a0a1a")
-  drawText("Loading map...", 150, 150, "#666666")
-
-  -- Register click handler
-  registerWidgetEvent(mapWidget, "click", function(data)
-    handleMapClick(data.x, data.y)
-  end)
-
-  -- Register resize handler to redraw
-  registerWidgetEvent(mapWidget, "resize", function(data)
-    redrawMap(data.width, data.height)
-  end)
-
-  -- Populate stats
-  updateStats()
+-- Map drawing function
+local function drawMap()
+  setActiveWidget(mapWidget)  -- Required: multiple widgets exist
+  clear("#0a0a1a")
+  drawText("World Map", 10, 20, "#ffffff")
 end
 
-function handleMapClick(x, y)
-  setActiveWidget(mapWidget)
-  -- Draw click marker
-  drawCircle(x, y, 3, "#ffff00")
-  print("Map clicked at: " .. x .. ", " .. y)
-end
-
-function redrawMap(width, height)
-  setActiveWidget(mapWidget)
-  clear()
-  drawRect(0, 0, width, height, "#0a0a1a")
-  drawText("Map (" .. width .. "x" .. height .. ")", 10, 20, "#ffffff")
-end
-
-function updateStats()
+-- Stats update function
+local function updateStats()
   textWidgetClear(statsWidget)
   textWidgetAddLine(statsWidget, "=== Character ===", "#ffff00")
   textWidgetAddLine(statsWidget, "HP: 100/100", "#00ff00")
   textWidgetAddLine(statsWidget, "MP: 50/50", "#0066ff")
-  textWidgetAddLine(statsWidget, "")
-  textWidgetAddButton(statsWidget, "refresh", "Refresh", function()
-    updateStats()
-  end)
 end
 
-function plugin.onUnload()
-  -- Clean up widgets
-  if mapWidget then
-    destroyWidget(mapWidget)
-  end
-  if statsWidget then
-    destroyWidget(statsWidget)
-  end
+-- Handle map clicks
+registerWidgetEvent(mapWidget, "click", function(data)
+  setActiveWidget(mapWidget)
+  drawCircle(data.x, data.y, 3, "#ffff00")
+end)
+
+-- Handle map resize
+registerWidgetEvent(mapWidget, "resize", function(data)
+  drawMap()
+end)
+
+-- Initial draw
+function init()
+  drawMap()
+  updateStats()
 end
 
-return plugin
+print("Loaded!")
 ```
