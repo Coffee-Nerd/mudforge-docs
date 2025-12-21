@@ -705,11 +705,15 @@ for k, v in pairs(dict) do
   print(k, v)
 end
 
--- Check for nil before operations
+-- Check for nil before accessing properties
+local myTable = { key = "hello" }  -- Define the table first
 local value = myTable.key
 if value then
   print(value)
 end
+
+-- Safe access pattern for potentially nil tables
+local data = someTable and someTable.key or "default"
 
 -- Use table.concat for string building (more efficient than ..)
 local parts = {"Hello", " ", "World"}
