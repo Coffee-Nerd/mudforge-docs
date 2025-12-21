@@ -35,37 +35,27 @@ Learn how to create plugins:
 ## Quick Start
 
 ```lua
--- Hello World Plugin
-print("Hello World loading...")
+-- Simple Canvas Plugin
+print("Loading...")
 
--- Create a simple widget
 local widget = createWidget({
   type = "canvas",
-  title = "Hello",
+  title = "My Plugin",
   width = 200,
   height = 100
 })
 
 local function draw()
-  setActiveWidget(widget)
-  clear("#1a1a2e")
-  drawText("Hello from MudForge!", 20, 50, "#ffffff")
+  clear("#1e1e2e")
+  drawRect(10, 10, 180, 80, "#89b4fa")
+  drawText("Hello MudForge!", 30, 55, "#cdd6f4")
 end
 
--- Redraw on resize
-registerWidgetEvent(widget, "resize", function(eventData)
-  draw()
-end)
+registerWidgetEvent(widget, "resize", function() draw() end)
 
--- Initial draw
 function init()
   draw()
 end
 
--- Add a command
-registerCommand("hi", function(args)
-  print("Hello!")
-end, "Say hello")
-
-print("Hello World loaded!")
+print("Loaded!")
 ```
