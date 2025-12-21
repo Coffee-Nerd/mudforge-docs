@@ -7,7 +7,6 @@ Working plugin examples to learn from.
 The simplest possible plugin (no canvas):
 
 ```lua
--- Echo Plugin
 print("Echo Plugin loading...")
 
 echo("Hello from Echo Plugin!")
@@ -24,35 +23,25 @@ print("Echo Plugin loaded!")
 Drawing shapes on a canvas:
 
 ```lua
--- Canvas Demo
 print("Canvas Demo loading...")
 
 local widget = createWidget({
   type = "canvas",
   title = "Shapes",
-  x = 100,
-  y = 100,
   width = 300,
   height = 200
 })
 
 local function draw()
-  setActiveWidget(widget)
   clear("#1a1a2e")
-
-  -- Draw various shapes
   drawRect(20, 20, 80, 60, "#e94560")
   drawCircle(180, 50, 40, "#0f3460")
   drawLine(20, 150, 280, 150, "#16c79a", 3)
-  drawText("Hello World!", 100, 180, "#ffffff", "16px Arial")
+  drawText("Hello World!", 100, 180, "#ffffff")
 end
 
--- Redraw on resize
-registerWidgetEvent(widget, "resize", function(eventData)
-  draw()
-end)
+registerWidgetEvent(widget, "resize", function() draw() end)
 
--- Initial draw
 function init()
   draw()
 end
@@ -65,18 +54,15 @@ print("Canvas Demo loaded!")
 Capturing data from MUD output:
 
 ```lua
--- Combat Logger
 print("Combat Logger loading...")
 
 local kills = 0
 
--- Trigger with regex capture groups
 addTrigger("You have slain (.+)!", function(match, target)
   kills = kills + 1
   echo("[Combat] Killed: " .. target .. " (Total: " .. kills .. ")")
 end, true)
 
--- Alias to check stats
 addAlias("^/kills$", function()
   echo("Total kills this session: " .. kills)
 end, true)
@@ -89,29 +75,24 @@ print("Combat Logger loaded!")
 Periodic actions:
 
 ```lua
--- Auto-Heal Plugin
 print("Auto-Heal loading...")
 
-local healTimer = nil
 local isHurt = false
 
--- Check health periodically
-healTimer = addTimer(5000, function()
+addTimer(5000, function()
   if isHurt then
     send("cast heal self")
   end
-end, true)  -- true = repeating
+end, true)
 
--- Track when we get hurt
 addTrigger("You are wounded!", function()
   isHurt = true
-  echo("[Auto-Heal] Activating healing...")
+  echo("[Auto-Heal] Activating...")
 end, false)
 
--- Track when we're healed
 addTrigger("You are fully healed.", function()
   isHurt = false
-  echo("[Auto-Heal] Healing complete.")
+  echo("[Auto-Heal] Complete.")
 end, false)
 
 print("Auto-Heal loaded!")
@@ -122,19 +103,15 @@ print("Auto-Heal loaded!")
 Accessing protocol data:
 
 ```lua
--- Room Tracker
 print("Room Tracker loading...")
 
--- Get current room
 local room = getCurrentRoom()
 if room then
   echo("Current room: " .. (room.name or "Unknown"))
 end
 
--- Subscribe to room changes
 onGMCPUpdate("Room.Info", function(data)
   echo("Moved to: " .. (data.name or "Unknown room"))
-  echo("Exits: " .. table.concat(data.exits or {}, ", "))
 end)
 
 print("Room Tracker loaded!")
@@ -145,27 +122,17 @@ print("Room Tracker loaded!")
 Sending commands between sessions:
 
 ```lua
--- Session Coordinator
 print("Session Coordinator loading...")
 
--- Command to send to all sessions
 addAlias("^/all (.+)$", function(match, cmd)
   sendToAll(cmd)
-  echo("Sent to all sessions: " .. cmd)
+  echo("Sent to all: " .. cmd)
 end, true)
 
--- Command to send to specific session
 addAlias("^/to (%w+) (.+)$", function(match, session, cmd)
   sendToSession(session, cmd)
   echo("Sent to " .. session .. ": " .. cmd)
 end, true)
-
--- Listen for global events
-onGlobal("party:heal", function(data)
-  if data.target == getSession().name then
-    send("cast heal " .. data.caster)
-  end
-end)
 
 print("Session Coordinator loaded!")
 ```
