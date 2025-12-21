@@ -325,56 +325,48 @@ DoAfterSpecial(3, "healIfLow()", sendto.script)
 ## Complete MUD Interaction Example
 
 ```lua
--- Complete MUD interaction example
-local plugin = {}
+-- Combat helper plugin
+print("Combat plugin loading...")
 
 local combatActive = false
 local targetName = nil
 
-function plugin.onLoad()
-  -- Register combat commands
-  registerCommand("attack", function(target)
-    if target then
-      targetName = target
-      combatActive = true
-      send("kill " .. target)
-      echo("Starting combat with " .. target, "#ff6600")
-    else
-      echo("Usage: /attack <target>", "#ff0000")
-    end
-  end, "Start combat with a target")
+registerCommand("attack", function(args)
+  local target = args[1]
+  if target then
+    targetName = target
+    combatActive = true
+    send("kill " .. target)
+    echo("Starting combat with " .. target, "#ff6600")
+  else
+    echo("Usage: /attack <target>", "#ff0000")
+  end
+end, "Start combat with a target")
 
-  registerCommand("flee", function()
-    if combatActive then
-      combatActive = false
-      send("flee")
-      echo("Fleeing from combat!", "#ffff00")
-    else
-      echo("Not in combat", "#888888")
-    end
-  end, "Flee from combat")
+registerCommand("flee", function()
+  if combatActive then
+    combatActive = false
+    send("flee")
+    echo("Fleeing from combat!", "#ffff00")
+  else
+    echo("Not in combat", "#888888")
+  end
+end, "Flee from combat")
 
-  -- Add trigger for low health warning
-  addTrigger("Your health is critical", function()
-    colourNote("red", "", "!!! CRITICAL HEALTH !!!")
-    DoAfter(0.5, "drink healing potion")
-  end)
+-- Low health warning
+addTrigger("Your health is critical", function()
+  colourNote("red", "", "!!! CRITICAL HEALTH !!!")
+  DoAfter(0.5, "drink healing potion")
+end)
 
-  -- Add trigger for combat end
-  addTrigger("is DEAD", function(line)
-    if combatActive then
-      combatActive = false
-      echo("Combat ended - " .. targetName .. " defeated!", "#00ff00")
-      targetName = nil
-    end
-  end)
+-- Combat end detection
+addTrigger("is DEAD", function(line)
+  if combatActive then
+    combatActive = false
+    echo("Combat ended - " .. targetName .. " defeated!", "#00ff00")
+    targetName = nil
+  end
+end)
 
-  echo("Combat plugin loaded!", "#00ff00")
-end
-
-function plugin.onUnload()
-  echo("Combat plugin unloaded", "#888888")
-end
-
-return plugin
+print("Combat plugin loaded!")
 ```
