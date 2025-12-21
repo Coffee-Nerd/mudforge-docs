@@ -1,6 +1,6 @@
 # API Reference
 
-This section contains the complete API reference for MudForge plugin development.
+Complete API reference for MudForge plugin development.
 
 ## Categories
 
@@ -18,99 +18,33 @@ This section contains the complete API reference for MudForge plugin development
 
 ## Getting Started
 
-Create a `.lua` file in your plugins directory. Here's a complete working example:
-
 ```lua
--- Health Monitor Plugin
-print("Health Monitor loading...")
+print("Loading...")
 
-local widget = nil
-local currentHP = 100
-local maxHP = 100
-
--- Create the widget
-widget = createWidget({
+local widget = createWidget({
   type = "canvas",
-  title = "Health",
-  x = 10, y = 10,
-  width = 200, height = 40
+  title = "Demo",
+  width = 200,
+  height = 100
 })
 
--- Update display function
-local function updateDisplay()
-  setActiveWidget(widget)
-  clear("#222222")
-
-  -- Background bar
-  drawRect(5, 10, 190, 20, "#333333")
-
-  -- Health bar (color changes based on health)
-  local pct = currentHP / maxHP
-  local barWidth = 186 * pct
-  local color = "#00ff00"
-  if pct <= 0.25 then
-    color = "#ff0000"
-  elseif pct <= 0.5 then
-    color = "#ffff00"
-  end
-  drawRect(7, 12, barWidth, 16, color)
-
-  -- Text overlay
-  drawText(currentHP .. "/" .. maxHP, 80, 25, "#ffffff")
+local function draw()
+  clear("#1e1e2e")
+  drawRect(10, 10, 180, 80, "#89b4fa")
+  drawText("Hello!", 70, 55, "#cdd6f4")
 end
 
--- Redraw on resize
-registerWidgetEvent(widget, "resize", function(eventData)
-  updateDisplay()
-end)
+registerWidgetEvent(widget, "resize", function() draw() end)
 
--- Initial draw after canvas is ready
 function init()
-  updateDisplay()
+  draw()
 end
 
--- Watch for health changes from MUD
-addTrigger("HP:\\s*(\\d+)/(\\d+)", function(line, matches)
-  currentHP = tonumber(matches[1])
-  maxHP = tonumber(matches[2])
-  updateDisplay()
-
-  -- Auto-heal when low
-  if currentHP < maxHP * 0.3 then
-    send("drink healing potion")
-    print("Auto-healing!")
-  end
-end, { type = "regex" })
-
--- Commands for testing
-registerCommand("hp", function(args)
-  print("Health: " .. currentHP .. "/" .. maxHP)
-end, "Show current health")
-
-registerCommand("sethp", function(args)
-  if args and args[1] then
-    local hp, max = string.match(args[1], "(%d+)/(%d+)")
-    if hp and max then
-      currentHP = tonumber(hp)
-      maxHP = tonumber(max)
-      updateDisplay()
-      print("Health set to " .. currentHP .. "/" .. maxHP)
-    else
-      print("Usage: sethp 50/100")
-    end
-  else
-    print("Usage: sethp 50/100")
-  end
-end, "Set health for testing")
-
-print("Health Monitor loaded! Commands: /hp, /sethp 50/100")
+print("Loaded!")
 ```
 
-This example shows:
-- **Widget creation** - Canvas widget for custom graphics
-- **init()** - Initial drawing after canvas is ready
-- **Resize handling** - Redraw when widget is resized
-- **Triggers** - Regex pattern matching MUD output
-- **Drawing** - Rectangles and text on the canvas
-- **Commands** - Custom `/hp` and `/sethp` commands
-- **Auto-actions** - Sending commands based on game state
+This shows the essential pattern:
+- **createWidget** - Create a canvas
+- **draw function** - Your drawing code
+- **registerWidgetEvent** - Redraw on resize
+- **init()** - Initial draw when canvas is ready
