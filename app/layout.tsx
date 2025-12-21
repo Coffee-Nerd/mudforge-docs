@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 const navbar = (
   <Navbar
     logo={<span style={{ fontWeight: 700 }}>MudForge Docs</span>}
-    projectLink="https://github.com/your-username/mud-web-client"
+    projectLink="https://github.com/Coffee-Nerd/mudforge-docs"
   />
 )
 
@@ -30,7 +30,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <Layout
           navbar={navbar}
           pageMap={await getPageMap()}
-          docsRepositoryBase="https://github.com/your-username/mudforge-docs/tree/main"
+          docsRepositoryBase="https://github.com/Coffee-Nerd/mudforge-docs/tree/main"
           footer={footer}
           sidebar={{ defaultMenuCollapseLevel: 1, toggleButton: true }}
           toc={{ backToTop: true }}
