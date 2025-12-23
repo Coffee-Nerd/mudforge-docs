@@ -1,0 +1,256 @@
+# Client Settings
+
+Global settings that affect the entire MudForge application. Access these via Settings (gear icon) in the interface.
+
+**localStorage Key:** `mud-client-settings`
+
+---
+
+## General Settings
+
+### Font & Display
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| fontFamily | `"mono"` \| `"sans"` \| `"serif"` | `"mono"` | Font family for the UI |
+| fontSize | number | `14` | UI font size in pixels (affects menus, buttons, dialogs). Range: 6-24 |
+| timestamps | boolean | `true` | Show timestamps in chat and terminal output |
+
+---
+
+### Input Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| commandStackingEnabled | boolean | `true` | Allow multiple commands separated by a character |
+| commandStackingCharacter | string | `";"` | Character used to separate stacked commands (single character) |
+| keepLastCommand | boolean | `false` | Keep the last command in the input box after sending |
+| commandHistorySize | number | `50` | Number of previous commands to remember. Range: 10-1000 |
+
+**Example:**
+```
+# With command stacking enabled and ";" as separator:
+north;open door;east
+# Sends three commands: north, open door, east
+```
+
+---
+
+### Output Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| autoReconnect | boolean | `false` | Automatically reconnect when connection is lost |
+| soundNotifications | boolean | `false` | Play sounds for important events |
+| showAliasOutput | boolean | `false` | Display the actual commands sent by aliases in terminal |
+| showTriggerOutput | boolean | `false` | Display the actual commands sent by triggers in terminal |
+| printColor | string | `"#ffffff"` | Default color for `print()` and `utilprint()` output (hex code) |
+
+---
+
+### Terminal Buffer
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| terminalBufferSize | number | `1000` | Maximum lines to keep in terminal buffer. Range: 100-10000 |
+
+---
+
+## Display Settings
+
+### Scrolling Behavior
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| autoScrollOnNewText | boolean | `true` | Automatically scroll to bottom when new text arrives |
+| resumeScrollOnCommand | boolean | `true` | Re-enable auto-scroll after sending a command |
+| smoothScrolling | boolean | `false` | Use smooth animation when scrolling to bottom |
+
+---
+
+### Text Wrapping
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| autoWrapText | boolean | `false` | Wrap long lines at a specific character width |
+| wrapWidth | number | `80` | Number of characters before wrapping. Range: 40-300. Only active if autoWrapText is true |
+
+---
+
+### Widget Layout
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| rememberWidgetPositions | boolean | `true` | Save widget positions when closing |
+| autoArrangeWidgets | boolean | `false` | Automatically arrange widgets to prevent overlap |
+| snapToGrid | boolean | `false` | Snap widget positions to a grid |
+| gridSize | number | `20` | Grid cell size in pixels. Range: 10-50, step 5. Only active if snapToGrid is true |
+| preventOverlap | boolean | `false` | Automatically move widgets to prevent overlapping |
+
+---
+
+## Advanced Settings
+
+### Feature Toggles
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| enableTriggers | boolean | `true` | Enable/disable trigger system |
+| enableAliases | boolean | `true` | Enable/disable alias system |
+| enableVariables | boolean | `true` | Enable/disable variable system |
+
+---
+
+### Logging
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| enableLogging | boolean | `true` | Enable activity logging |
+| maxLogEntries | number | `10000` | Maximum number of log entries to keep. Range: 1000-50000 |
+
+---
+
+## Debug Settings
+
+### Debug Mode
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| debugMode | boolean | `false` | Enable debug logging to console |
+| debugLevel | `"debug"` \| `"info"` \| `"warn"` \| `"error"` | `"debug"` | Minimum verbosity level for debug messages |
+| debugTimestamps | boolean | `true` | Include timestamps in debug messages |
+| debugColors | boolean | `true` | Use colors to distinguish log levels in console |
+
+**Debug Output Categories:**
+- `[PLUGIN]` - Plugin loading and execution
+- `[WIDGET]` - Widget creation and management
+- `[ENGINE]` - Lua engine operations
+- `[API]` - Plugin API calls
+- `[SAVE]` - Data persistence operations
+- `[LOAD]` - Data loading operations
+- `[PAGE]` - Main page operations
+- `[MANAGER]` - Plugin manager operations
+
+---
+
+## Protocol Settings
+
+### MXP (MUD eXtension Protocol)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| mxp.enabled | boolean | `true` | Allow MXP tags and enhanced formatting |
+| mxp.useCustomColorLinks | boolean | `true` | Apply custom styling to MXP color links |
+| mxp.underlineHyperlinks | boolean | `true` | Show underline decoration on clickable links |
+| mxp.saveHyperlinkHistory | boolean | `true` | Keep a history of clicked hyperlinks |
+| mxp.echoHyperlinkClicks | boolean | `true` | Show clicked hyperlinks in terminal output |
+| mxp.debugInfo | boolean | `false` | Enable MXP debug mode |
+
+---
+
+### MCCP (MUD Client Compression Protocol)
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| mccp.enabled | boolean | `true` | Allow data compression to reduce bandwidth |
+| mccp.version | `1` \| `2` \| `3` | `2` | MCCP protocol version. 1=zlib, 2=zlib with IAC handling, 3=deflate |
+| mccp.compressionLevel | number | `6` | Compression level. Values: 1 (fastest), 3, 6 (balanced), 9 (best compression) |
+| mccp.debugInfo | boolean | `false` | Enable MCCP debug mode |
+
+---
+
+### Protocol Echo
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| protocolEchoColor | number | `220` | xterm-256 color code for GMCP/MSDP echo messages (220 = yellow) |
+
+---
+
+## Sound Settings
+
+Sound settings are stored separately in `mud-client-sound-settings`:
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| soundEnabled | boolean | `true` | Master switch for all audio notifications |
+| masterVolume | number | `0.8` | Master volume level (0.0 to 1.0) |
+| soundPack | string | `"default"` | Sound pack theme. Options: "default", "fantasy", "scifi", "minimal" |
+
+---
+
+### Sound Events
+
+Sound events are stored in `mud-client-sound-events`. Each event has:
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| id | string | Yes | Unique identifier |
+| name | string | Yes | Display name |
+| trigger | string | Yes | Pattern to match in MUD output |
+| soundFile | string | Yes | Path to audio file (URL or localStorage reference) |
+| volume | number | Yes | Individual volume level (0.0 to 1.0) |
+| enabled | boolean | Yes | Whether this event is active |
+| category | string | No | Optional category grouping |
+| isRegex | boolean | No | Whether trigger is a regex pattern |
+| priority | number | No | Execution priority (higher = earlier) |
+
+**Default Sound Events:**
+1. Test Trigger - pattern: `"test"`
+2. Purple Herb - pattern: `"You get some purple athelas herb"`
+3. New Message - pattern: `"tells you"`
+4. Health Low - pattern: `"health is low"`
+5. Level Up - pattern: `"You have gained a level"`
+6. Death - pattern: `"You have died"`
+
+---
+
+## Layout Presets
+
+Layout presets can be saved and managed through Display Settings → Presets tab.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| id | string | Unique identifier |
+| name | string | Preset name |
+| description | string | Optional description |
+| widgets | array | List of widgets with positions and states |
+
+**Notes:**
+- Built-in presets cannot be deleted
+- Custom presets (prefixed with "custom-") can be deleted
+- Presets store widget positions, visibility, and dimensions
+
+---
+
+## Import/Export
+
+### Exporting Settings
+
+```javascript
+// Settings are exported as JSON
+const settings = JSON.parse(localStorage.getItem('mud-client-settings'))
+```
+
+### Importing Settings
+
+Settings can be imported via:
+1. Settings → Display → Manage tab
+2. Click "Import Layout"
+3. Select your exported JSON file
+
+**Exportable Data:**
+- Complete AppSettings configuration
+- Sound event configurations
+- Widget positioning and visibility states
+
+---
+
+## Resetting Settings
+
+To reset all settings to defaults:
+1. Go to Settings
+2. Click "Reset to Defaults" (if available)
+3. Or manually clear localStorage: `localStorage.removeItem('mud-client-settings')`
+
+**Warning:** This will reset all customizations. Consider exporting first.
