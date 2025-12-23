@@ -1,0 +1,325 @@
+# Group Widget
+
+Displays party/group member information including health, mana, movement gauges, and quest status. Data is sourced from GMCP Group packages.
+
+---
+
+## Widget Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| sessionId | string | - | Session ID for multi-session support |
+
+---
+
+## Display Settings
+
+Settings are stored in React state (not persisted to localStorage).
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| showMN | boolean | `true` | Show mana gauge |
+| showMV | boolean | `true` | Show movement gauge |
+| showNumbers | boolean | `true` | Show current/max numbers |
+| showLabels | boolean | `true` | Show gauge labels (HP, MN, MV) |
+| showPercentages | boolean | `true` | Show percentage values |
+| overlayText | boolean | `true` | Display text over gauge fill |
+| centerOverlay | boolean | `true` | Center text or right-align |
+| sideBySide | boolean | `true` | Arrange gauges horizontally |
+| thinGauges | boolean | `false` | Use thin gauge height (1px vs 4px) |
+| compactMode | boolean | `false` | Compact member display |
+| ultraCompactMode | boolean | `false` | Ultra-compact display |
+| showDarkerBackground | boolean | `true` | Color the gauge background |
+| useFallbackData | boolean | `false` | Enable demo/fallback data |
+| useOverlayStyle | boolean | `false` | Alternative overlay style |
+
+---
+
+## Gauge Thresholds
+
+Configure colors based on percentage values (same as Status Bar):
+
+| Threshold | Default Value | Default Color | Description |
+|-----------|---------------|---------------|-------------|
+| low | `30` | `#EF4444` (Red) | 0% to low value |
+| medium | `60` | `#F59E0B` (Orange) | low to medium value |
+| high | `90` | `#10B981` (Green) | medium to high value |
+| full | - | `#10B981` (Green) | high to 100% |
+
+### Threshold Configuration
+
+```typescript
+{
+  low: { value: 30, color: "#EF4444" },
+  medium: { value: 60, color: "#F59E0B" },
+  high: { value: 90, color: "#10B981" },
+  full: { color: "#10B981" }
+}
+```
+
+---
+
+## Member Data Structure
+
+Each group member has:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| name | string | Member name |
+| info.hp | number | Current health |
+| info.mhp | number | Maximum health |
+| info.mn | number | Current mana |
+| info.mmn | number | Maximum mana |
+| info.mv | number | Current movement |
+| info.mmv | number | Maximum movement |
+| info.align | number | Alignment value |
+| info.tnl | number | Experience to next level |
+| info.qt | number | Quest time remaining |
+| info.qs | number | Quest status (0-3) |
+| info.lvl | number | Character level |
+| info.here | number | Present in group (1=yes) |
+
+### Quest Status Values
+
+| Value | Display | Description |
+|-------|---------|-------------|
+| 0 | "Ready" | Ready to take a quest |
+| 1 | `"{qt}s left"` | Quest active with time remaining |
+| 2 | `"{qt}s cooldown"` | Cooldown period |
+| 3 | "N/A" | Quest not available |
+
+---
+
+## Enemy Display
+
+Enemies are displayed in a separate section with red styling:
+
+- Red icon and header
+- Red-tinted background: `bg-red-500/10`
+- Red border
+- Same gauge display as members
+
+---
+
+## Display Modes
+
+### Normal Mode
+- Full member cards with all gauges
+- Name and level badges
+- All configured information visible
+
+### Compact Mode
+- Reduced spacing between elements
+- Smaller cards
+- Less padding
+
+### Ultra Compact Mode
+- Minimal display footprint
+- Single-line per member
+- Essential info only
+
+### Overlay Text Options
+
+**Overlay Enabled (overlayText: true):**
+- Text appears on top of gauge fill
+- Can be centered or right-aligned
+
+**Overlay Disabled (overlayText: false):**
+- Text appears next to gauge
+- Separate display area
+
+### Gauge Layout
+
+**Side-by-Side (sideBySide: true):**
+- HP, MN, MV gauges in a row
+- Horizontal arrangement
+
+**Stacked (sideBySide: false):**
+- Gauges stacked vertically
+- One per line
+
+**Thin Gauges (thinGauges: true):**
+- 1px height gauges
+- Minimal visual footprint
+
+**Normal Gauges (thinGauges: false):**
+- 4px height gauges
+- Better visibility
+
+---
+
+## Fallback Demo Data
+
+For testing without a GMCP connection, enable `useFallbackData`:
+
+```typescript
+const fallbackMembers = [
+  {
+    name: "Aragorn",
+    info: {
+      hp: 85, mhp: 100,
+      mn: 45, mmn: 60,
+      mv: 78, mmv: 100,
+      align: 0, tnl: 5000,
+      qt: 0, qs: 0,
+      lvl: 12, here: 1
+    }
+  },
+  {
+    name: "Legolas",
+    info: {
+      hp: 92, mhp: 95,
+      mn: 78, mmn: 85,
+      mv: 88, mmv: 90,
+      align: 0, tnl: 4500,
+      qt: 0, qs: 0,
+      lvl: 11, here: 1
+    }
+  },
+  {
+    name: "Gimli",
+    info: {
+      hp: 78, mhp: 120,
+      mn: 20, mmn: 30,
+      mv: 65, mmv: 80,
+      align: 0, tnl: 6000,
+      qt: 0, qs: 0,
+      lvl: 10, here: 1
+    }
+  }
+]
+```
+
+---
+
+## Data Sources
+
+### GMCP Packages
+
+**Group.Members:**
+Array of group member objects with full vitals.
+
+**Group.Enemies:**
+Array of enemy objects (same structure as members).
+
+**Group.Info:**
+```typescript
+{
+  groupname: string
+  leader: string
+  created: string
+  status: string
+  count: number
+  kills: number
+  exp: number
+}
+```
+
+---
+
+## Number Formatting
+
+The `truncateNumber` function formats large numbers:
+
+| Value | Display |
+|-------|---------|
+| 1,500,000 | `1.5mil` |
+| 75,000 | `75.0k` |
+| 950 | `950` |
+
+---
+
+## Color Handling
+
+### getColorClass Function
+
+Returns background and border colors based on percentage:
+
+```typescript
+function getColorClass(percentage: number, thresholds: GaugeThresholds) {
+  if (percentage <= thresholds.low.value) {
+    return { bg: thresholds.low.color, border: darken(thresholds.low.color) }
+  }
+  if (percentage <= thresholds.medium.value) {
+    return { bg: thresholds.medium.color, border: darken(thresholds.medium.color) }
+  }
+  if (percentage <= thresholds.high.value) {
+    return { bg: thresholds.high.color, border: darken(thresholds.high.color) }
+  }
+  return { bg: thresholds.full.color, border: darken(thresholds.full.color) }
+}
+```
+
+---
+
+## Settings Access
+
+### Desktop
+- Right-click anywhere on the widget for context menu
+- All toggle switches and color pickers available
+
+### Mobile
+- Tap the Settings button for bottom sheet
+- Same options as desktop, scrollable content
+
+---
+
+## UI Components
+
+### Header
+- Users icon
+- "Party Status" title
+- Badge showing member count
+- Settings button
+
+### Member Cards
+- Name and level badge
+- HP gauge (always visible)
+- MN gauge (if `showMN` enabled)
+- MV gauge (if `showMV` enabled)
+- Labels and percentages as configured
+
+### Enemies Section
+- Sword icon with red styling
+- "Enemies" header
+- Same card layout as members
+- Red background tint
+
+---
+
+## Styling
+
+### Text Styling
+- Font: `font-mono`
+- Color: White (`#ffffff`)
+- Size: `text-xs`
+- Shadow for readability:
+```css
+text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 2px rgba(0,0,0,0.5);
+```
+
+### Card Styling
+- Background: `bg-muted/30`
+- Border: `border`
+- Rounded corners
+- Padding: varies by mode
+
+### Enemy Card Styling
+- Background: `bg-red-500/10`
+- Border: `border-red-500/30`
+
+---
+
+## Responsive Design
+
+The widget detects mobile via `window.innerWidth < 768`:
+
+**Mobile:**
+- Settings in bottom Sheet component
+- Touch-optimized controls
+- Swipe-friendly layout
+
+**Desktop:**
+- Settings in ContextMenu
+- Right-click access
+- Hover states
