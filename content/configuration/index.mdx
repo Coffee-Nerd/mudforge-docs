@@ -1,0 +1,91 @@
+# Configuration
+
+MudForge provides extensive configuration options to customize your MUD client experience. This section covers all settings, widget configurations, and protocol options available.
+
+---
+
+## Settings Storage
+
+All settings are automatically persisted to your browser's localStorage. This means your preferences are saved across sessions and page refreshes.
+
+**Main localStorage Keys:**
+- `mud-client-settings` - Global application settings
+- `mud-client-widget-settings` - Per-widget font configurations
+- `status-bar-settings-desktop` / `status-bar-settings-mobile` - Status bar display settings
+- `chat-custom-captures-{widgetId}` - Chat widget capture patterns
+
+---
+
+## Configuration Sections
+
+### Client Settings
+
+Global settings that affect the entire application, including:
+- Input behavior (command stacking, history)
+- Display options (fonts, scrolling, text wrapping)
+- Feature toggles (triggers, aliases, logging)
+- Debug and protocol settings
+
+[View Client Settings →](/configuration/client-settings)
+
+---
+
+### Widget Configuration
+
+Each widget has its own set of configurable options:
+
+#### Terminal Widget
+The main output display with settings for scrolling, fonts, keyboard shortcuts, and built-in commands.
+
+[View Terminal Widget →](/configuration/terminal-widget)
+
+#### Chat Widget
+Communication channels with tab management, timestamps, custom capture patterns, and channel routing.
+
+[View Chat Widget →](/configuration/chat-widget)
+
+#### Status Bar Widget
+Health, mana, and movement gauges with customizable thresholds, display modes, and character info.
+
+[View Status Bar Widget →](/configuration/status-bar-widget)
+
+#### Map Widget
+Room mapping with terrain styles, protocol configuration, coordinate tracking, and database management.
+
+[View Map Widget →](/configuration/map-widget)
+
+#### Group Widget
+Party member display with gauge thresholds, display modes, and GMCP group data visualization.
+
+[View Group Widget →](/configuration/group-widget)
+
+---
+
+### Protocol Reference
+
+Complete reference for GMCP and MSDP protocol fields used by widgets to receive game data.
+
+[View Protocol Reference →](/configuration/protocol-reference)
+
+---
+
+## Quick Start
+
+### Accessing Settings
+
+1. Click the **Settings** button (gear icon) in the interface
+2. Navigate between tabs: General, Automation, Audio, Plugins, Logging, Display, Debug
+3. Changes are saved automatically
+
+### Widget Settings
+
+Most widgets have a settings button (gear icon or right-click context menu) for widget-specific options:
+- Right-click on Status Bar or Group widgets for quick settings
+- Use the settings icon on Chat widget for tab and capture configuration
+
+### Exporting/Importing
+
+You can export and import your settings:
+1. Go to Settings → Display → Manage tab
+2. Click "Export Layout" to save your configuration
+3. Click "Import Layout" to restore from a file
