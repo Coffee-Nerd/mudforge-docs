@@ -1,0 +1,254 @@
+# Terminal Widget
+
+The main output display for MUD text. Handles incoming data, command input, and provides built-in commands for navigation and debugging.
+
+---
+
+## Widget Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| widgetId | string | `"terminal"` | Unique identifier for widget-specific settings |
+| sessionId | string | - | Session ID for filtering events in multi-session mode |
+| isMobile | boolean | `false` | Enable mobile-optimized layout |
+| showSearch | boolean | - | Show/hide search UI |
+| hideInput | boolean | `false` | Hide the input component (for external rendering) |
+| isConnected | boolean | `false` | Initial connection state |
+| statusWidgetVisible | boolean | - | Triggers refit when status widget visibility changes |
+
+---
+
+## Font Settings
+
+Font settings are configured per-widget via the `useWidgetSettings` hook.
+
+**localStorage Key:** `mud-client-widget-settings`
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| fontFamily | string | `"mono"` | Font family name (from font-config) |
+| fontSize | number | `14` | Font size in pixels |
+| fontWeight | string | `"normal"` | CSS font weight: "normal", "bold", or 100-900 |
+| zIndex | number | `10` | Widget z-index for layering |
+
+---
+
+## Scrolling Behavior
+
+These settings are from the global client settings but directly affect the terminal:
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| autoScrollOnNewText | boolean | `true` | Auto-scroll to bottom when new text arrives |
+| resumeScrollOnCommand | boolean | `true` | Resume auto-scroll when sending commands |
+| smoothScrolling | boolean | `false` | Use smooth animation instead of instant jump |
+
+---
+
+## Text Wrapping
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| autoWrapText | boolean | `false` | Wrap long lines at specified width |
+| wrapWidth | number | `80` | Characters before wrapping (40-300) |
+
+---
+
+## Command Stacking
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| commandStackingEnabled | boolean | `true` | Allow multiple commands separated by a character |
+| commandStackingCharacter | string | `";"` | Separator character for command stacking |
+| keepLastCommand | boolean | `false` | Keep last command in input after sending |
+
+**Example:**
+```
+north;east;open door;south
+# Sends: north, east, open door, south (in sequence)
+```
+
+---
+
+## Terminal Configuration
+
+The terminal uses xterm.js with these core options:
+
+| Option | Value | Description |
+|--------|-------|-------------|
+| scrollback | `10000` | Lines of scrollback history |
+| cursorBlink | `false` | Cursor disabled (output-only terminal) |
+| disableStdin | `true` | Input handled by TerminalInput component |
+| screenReaderMode | `true` | Accessibility support enabled |
+| convertEol | `true` | Convert EOL characters |
+| fastScrollModifier | `"shift"` | Hold Shift for fast scroll |
+| allowTransparency | `true` | Enable grayscale antialiasing |
+| cols | `120` | Initial columns |
+| rows | `30` | Initial rows |
+
+---
+
+## Theme Colors
+
+The terminal uses a dark theme with standard ANSI colors:
+
+| Color | Hex Code | Usage |
+|-------|----------|-------|
+| background | `#000000` | Terminal background |
+| foreground | `#ffffff` | Default text color |
+| cursor | `transparent` | Cursor color (hidden) |
+| selectionBackground | `#414458` | Selected text background |
+| black | `#000000` | ANSI black |
+| red | `#ff5555` | ANSI red |
+| green | `#50fa7b` | ANSI green |
+| yellow | `#f1fa8c` | ANSI yellow |
+| blue | `#6272a4` | ANSI blue |
+| magenta | `#ff79c6` | ANSI magenta |
+| cyan | `#8be9fd` | ANSI cyan |
+| white | `#f8f8f2` | ANSI white |
+
+Bright variants are also available for each color.
+
+---
+
+## Link Protocols
+
+The terminal supports clickable links with special protocols:
+
+| Protocol | Format | Description |
+|----------|--------|-------------|
+| send: | `send:command` | Sends single command when clicked |
+| prompt: | `prompt:text` | Places text in input for editing |
+| command:// | `command://cmd` | OSC8 hyperlinks from mapper |
+| mxp-menu: | `mxp-menu:data` | Multi-option MXP menu (right-click for options) |
+| http/https | Standard URLs | Opens in new tab |
+
+**Example MXP Link:**
+```
+\x1b]8;;send:look\x1b\\[look]\x1b]8;;\x1b\\
+```
+
+---
+
+## Built-in Commands
+
+### Connection Commands
+
+| Command | Description |
+|---------|-------------|
+| `connect <host:port>` | Connect to MUD server |
+| `connect <host> <port> [tls]` | Connect with optional TLS |
+| `disconnect` | Disconnect from server |
+
+### Utility Commands
+
+| Command | Description |
+|---------|-------------|
+| `clear` | Clear terminal output |
+| `client help` | Show help information |
+| `history` | Show last 10 commands |
+
+### Debug Commands
+
+| Command | Description |
+|---------|-------------|
+| `testmxp` | Test MXP link functionality |
+| `testlinks` | Test various link types |
+| `testpassword` | Toggle password input mode |
+| `gmcpdebug` | Toggle GMCP debug messages |
+| `msdpdebug` | Toggle MSDP debug messages |
+
+### Mapper Commands
+
+| Command | Description |
+|---------|-------------|
+| `mapper find <room>` | Search map database for room |
+| `mapper goto <room>` | Navigate to room via mapper |
+| `mapper addnote <text>` | Add note to current room |
+
+---
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+F` | Open search dialog |
+| `Ctrl+V` | Paste from clipboard |
+| `Ctrl+C` | Copy selected text (when text is selected) |
+| `Up Arrow` | Previous command in history |
+| `Down Arrow` | Next command in history |
+| `Tab` | Command completion (if available) |
+| `Enter` | Send command |
+| `Escape` | Clear current input |
+
+---
+
+## Connection Settings
+
+### TLS Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| useTLS | boolean | `false` | Use TLS/SSL encryption |
+| allowSelfSignedCerts | boolean | `true` | Accept self-signed certificates |
+
+When TLS is enabled, "(TLS)" is appended to the connection status.
+
+### NAWS (Negotiate About Window Size)
+
+The terminal automatically sends window size to the server:
+- Sent on initial connection with current cols/rows
+- Re-sent when terminal is resized
+
+---
+
+## Custom Events
+
+### Dispatched Events
+
+| Event | Description |
+|-------|-------------|
+| `terminal-write` | Non-gagged text to write |
+| `terminalCommand` | External command to execute |
+| `map:goto` | Map navigation command |
+| `terminalSearchRequest` | Request to open search UI |
+| `mxp-event` | MXP tag processing |
+| `mccp-event` | MCCP compression event |
+
+### Listened Events
+
+| Event | Description |
+|-------|-------------|
+| `widgetSettingsChanged` | Update fonts when settings change |
+| `settingsChanged` | Sync global settings |
+| `terminal-write` | Write text to terminal |
+| `terminalCommand` | Process external commands |
+| `resize` | Window resize |
+
+---
+
+## Plugin Font API
+
+Plugins can customize widget fonts via the API:
+
+```lua
+-- Get current font settings
+local fontFamily = getWidgetProperty(widgetId, "fontFamily")
+local fontSize = getWidgetProperty(widgetId, "fontSize")
+
+-- Set font settings
+setWidgetProperty(widgetId, "fontFamily", "mono")
+setWidgetProperty(widgetId, "fontSize", 16)
+setWidgetProperty(widgetId, "fontWeight", "bold")
+```
+
+---
+
+## Mobile Optimizations
+
+When `isMobile` is true:
+- Reduced padding (4px vs 8px)
+- Minimum height: 200px (vs 400px on desktop)
+- Full width layout
+- Touch-optimized scrolling
+- Viewport resize handling for mobile keyboards
