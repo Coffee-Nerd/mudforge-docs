@@ -1,271 +1,110 @@
 # Chat Widget
 
-The chat widget displays communication channels from the MUD, organized into tabs with customizable capture patterns and timestamp formatting.
+Displays communication channels from the MUD organized into tabs. Capture specific messages, customize colors, and filter by channel.
 
 ---
 
-## Widget Props
+## Tabs
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| widgetId | string | `"chat"` | Unique identifier for settings persistence |
-| sessionId | string | - | Session ID for multi-session support |
-| onReceiveMessage | function | - | Callback when a message is received |
+The chat widget organizes messages into tabs:
 
----
-
-## Tab Configuration
-
-Tabs organize messages by channel type. Each tab has:
-
-| Property | Type | Description |
-|----------|------|-------------|
-| id | string | Unique tab identifier |
-| name | string | Display name |
-| channels | string[] | Array of channel names to filter |
-| messages | ChatMessage[] | Array of messages in this tab |
-| hasNewMessages | boolean | Unread indicator flag |
-| isHighlighted | boolean | Visual highlighting flag |
-
-### Default Tabs
-
-| Tab | Channels |
-|-----|----------|
-| All | All channels (no filter) |
+| Default Tab | Channels |
+|-------------|----------|
+| All | Everything |
 | Group | group, tell |
 | Public | chat, gossip, auction, question |
 | Local | say, yell, shout, whisper |
 
-### Custom Tabs
+### Managing Tabs
 
-You can create custom tabs via the settings dialog:
-1. Click the Settings (gear) icon
-2. Go to the Tabs section
-3. Click "Add Tab" and configure channels
+- **Add a tab**: Click the Settings icon → Tabs → Add Tab
+- **Rename a tab**: Right-click the tab → Rename
+- **Delete a tab**: Right-click the tab → Delete (can't delete "All")
+- **Edit channels**: Right-click the tab → Edit Channels
 
 ---
 
-## Timestamp Settings
+## Timestamps
 
-Configure how timestamps appear on messages:
+Configure how timestamps appear on messages in **Settings → Timestamps**:
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| enabled | boolean | `true` | Show/hide timestamps |
-| format | string | `"24h"` | Time format (see below) |
-| showDate | boolean | `false` | Include date in timestamp |
-| showMilliseconds | boolean | `false` | Show milliseconds precision |
+| Format | Example |
+|--------|---------|
+| 12-hour | `3:45 PM` |
+| 24-hour | `15:45` |
+| ISO | `2023-12-25T15:45:30Z` |
+| Relative | `5m ago` |
 
-### Format Options
-
-| Format | Example | Description |
-|--------|---------|-------------|
-| `"12h"` | `3:45 PM` | 12-hour with AM/PM |
-| `"24h"` | `15:45` | 24-hour format |
-| `"iso"` | `2023-12-25T15:45:30.123Z` | ISO 8601 format |
-| `"relative"` | `5m ago` | Relative time |
+Additional options:
+- **Show date** - Include the date with the time
+- **Show milliseconds** - Show precise timing
 
 ---
 
 ## Custom Capture Patterns
 
-Capture specific text patterns and route them to tabs with custom colors.
+Capture specific text and route it to tabs with custom colors.
 
-**localStorage Key:** `chat-custom-captures-{widgetId}`
+### Creating a Capture
 
-| Property | Type | Required | Description |
-|----------|------|----------|-------------|
-| id | string | Yes | Unique pattern identifier |
-| pattern | string | Yes | Text to match (string or regex) |
-| colorOverride | string | No | Hex color for captured messages |
-| enabled | boolean | Yes | Enable/disable this pattern |
-| isRegex | boolean | No | Use regex matching (default: `true`) |
-| tabId | string | No | Route to specific tab |
-
-### Creating a Capture Pattern
-
-1. Open Settings → Captures tab
+1. Open Settings → Captures
 2. Enter a pattern (regex by default)
-3. Optionally set a color override
+3. Optionally set a color
 4. Optionally select a destination tab
 5. Click "Add Capture"
 
-**Example Patterns:**
-```
-# Capture tells (regex)
-^\[.*?\] tells you
+### Example Patterns
 
-# Capture combat damage
-You (hit|slash|crush|pierce) .* for \d+ damage
+| Purpose | Pattern |
+|---------|---------|
+| Capture tells | `tells you` |
+| Combat damage | `You .* for \d+ damage` |
+| Loot messages | `You (get\|receive\|find)` |
+| Level up | `gained a level` |
 
-# Simple substring (disable regex)
-You have been poisoned
-```
+### Tips
+
+- Use regex for flexible matching
+- Disable "Is Regex" for simple text matching
+- Set a bright color for important messages
+- Route combat to a dedicated "Combat" tab
 
 ---
 
 ## Channel Colors
 
-Pre-configured colors for known channels:
+Each channel has a preset color. Here are some examples:
 
-### Communication Channels
-
-| Channel | Color | Hex Code |
-|---------|-------|----------|
-| auction | Yellow | `#fbbf24` |
-| chat | Sky Blue | `#38bdf8` |
-| clan | Indigo | `#818cf8` |
-| dream | Purple | `#a78bfa` |
-| gossip | Lime | `#84cc16` |
-| music | Pink | `#f472b6` |
-| spouse | Rose | `#fb7185` |
-| question | Cyan | `#22d3ee` |
-| vent | Orange | `#fb923c` |
-| quote | Teal | `#2dd4bf` |
-| shout | Red | `#f87171` |
-| yell | Amber | `#fcd34d` |
-| discord | Violet | `#8b5cf6` |
-
-### Staff Channels
-
-| Channel | Color | Hex Code |
-|---------|-------|----------|
-| herotalk | Emerald | `#34d399` |
-| avatalk | Blue | `#60a5fa` |
-| wiztalk | Fuchsia | `#e879f9` |
-| dmtalk | Purple | `#c084fc` |
-
-### Local Channels
-
-| Channel | Color | Hex Code |
-|---------|-------|----------|
-| group | Emerald | `#10b981` |
-| tell | Cyan | `#06b6d4` |
-| say | Slate | `#94a3b8` |
-| ooc | Gray | `#9ca3af` |
-| party | Green | `#22c55e` |
-| guild | Indigo | `#6366f1` |
-| whisper | Stone | `#a8a29e` |
-
-### Special
-
-| Channel | Color | Hex Code |
-|---------|-------|----------|
-| capture | Green | `#10b981` |
+| Channel | Color |
+|---------|-------|
+| chat | Sky Blue |
+| gossip | Lime Green |
+| tell | Cyan |
+| group | Emerald |
+| auction | Yellow |
+| say | Gray |
+| shout | Red |
+| yell | Amber |
 
 ---
 
 ## Display Options
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| showTabs | boolean | `true` | Show/hide the tab bar |
-| loggingEnabled | boolean | `false` | Auto-log messages to file |
+| Option | Description |
+|--------|-------------|
+| Show tabs | Show/hide the tab bar |
+| Enable logging | Auto-log messages to file |
 
 ---
 
-## Font Styling
+## Context Menu
 
-Font settings are configured via the widget settings system:
+**Right-click on a message:**
+- Copy Message
+- Copy Sender
+- Filter by Channel
 
-**localStorage Key:** `mud-client-widget-settings`
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| fontFamily | string | `"mono"` | Font family name |
-| fontSize | number | `14` | Font size in pixels |
-| fontWeight | string | `"normal"` | Font weight |
-| zIndex | number | - | Widget z-index |
-
-### Plugin Font API
-
-```lua
--- Get chat widget font settings
-local fontFamily = getWidgetProperty("chat", "fontFamily")
-local fontSize = getWidgetProperty("chat", "fontSize")
-
--- Set chat widget fonts
-setWidgetProperty("chat", "fontFamily", "mono")
-setWidgetProperty("chat", "fontSize", 16)
-```
-
----
-
-## Event Listeners
-
-### Custom Events
-
-| Event | Description |
-|-------|-------------|
-| `widgetSettingsChanged` | Font settings changed |
-| `terminal-write` | Captures terminal output for pattern matching |
-
-### GMCP Integration
-
-The chat widget listens for GMCP communication data:
-- `Comm.Channel.Text` - Channel messages
-- `Comm.Channel.Tell` - Private tells
-
----
-
-## Message Structure
-
-Each message in the chat has:
-
-| Property | Type | Description |
-|----------|------|-------------|
-| id | string | Unique message ID |
-| channel | string | Channel name |
-| sender | string | Sender name |
-| message | string | Message content |
-| timestamp | Date | When received |
-| color | string | Display color (hex) |
-
----
-
-## Context Menu Actions
-
-Right-click on a message for:
-- **Copy Message** - Copy to clipboard
-- **Copy Sender** - Copy sender name
-- **Filter by Channel** - Filter to this channel
-- **Add to Ignore** - Ignore this sender
-
-Right-click on a tab for:
-- **Rename Tab** - Change tab name
-- **Edit Channels** - Modify channel list
-- **Delete Tab** - Remove tab (except "All")
-
----
-
-## localStorage Keys
-
-| Key | Description |
-|-----|-------------|
-| `chat-custom-captures-{widgetId}` | Custom capture patterns |
-| `mud-client-widget-settings` | Font configuration |
-
----
-
-## Tips
-
-### Capturing Combat
-
-Create a capture pattern for combat messages:
-```
-Pattern: (You|Your) (hit|miss|dodge|parry|block)
-Color: #ff6b6b (red)
-Tab: Create a "Combat" tab
-```
-
-### Capturing Loot
-
-```
-Pattern: You (get|receive|loot|find) .+
-Color: #ffd93d (gold)
-Tab: Create a "Loot" tab
-```
-
-### Muting Spam
-
-Create a capture with no color and no tab to effectively "mute" certain messages (they still appear in "All" but are not highlighted).
+**Right-click on a tab:**
+- Rename Tab
+- Edit Channels
+- Delete Tab

@@ -1,307 +1,97 @@
 # Status Bar Widget
 
-Displays health, mana, and movement gauges with character information. Supports GMCP and MSDP protocols for data updates.
+Displays your character's health, mana, and movement as visual gauges. Shows character info like name and level.
 
 ---
 
-## Widget Props
+## Accessing Settings
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| isMobile | boolean | `false` | Enable mobile-optimized layout |
-| sessionId | string | - | Session ID for multi-session support |
+Right-click anywhere on the status bar to open the settings menu.
 
 ---
 
-## Display Settings
+## Display Options
 
-**localStorage Keys:**
-- `status-bar-settings-desktop` - Desktop settings
-- `status-bar-settings-mobile` - Mobile settings
-
-| Setting | Type | Default (Desktop) | Default (Mobile) | Description |
-|---------|------|-------------------|------------------|-------------|
-| showMana | boolean | `true` | `true` | Show mana/magic gauge |
-| showMovement | boolean | `true` | `true` | Show stamina/movement gauge |
-| showNumbers | boolean | `true` | `false` | Show current/max numbers (e.g., "100/150") |
-| showLabels | boolean | `true` | `true` | Show gauge labels (HP, MN, MV) |
-| showPercentages | boolean | `true` | `true` | Show percentage (e.g., "(67%)") |
-| overlayText | boolean | `true` | `true` | Display text over gauge fill |
-| centerOverlay | boolean | `true` | `true` | Center text or right-align |
-| darkerOutlines | boolean | `false` | `false` | Apply stronger text shadow/outline |
-| sideBySide | boolean | `true` | `true` | Arrange gauges horizontally |
-| thinGauges | boolean | `false` | `false` | Use thin gauge height (1px vs 4px) |
-| compactMode | boolean | `false` | `false` | Compact layout |
-| ultraCompactMode | boolean | `false` | `false` | Single-line ultra-compact display |
-| showDarkerBackground | boolean | `true` | `true` | Color the gauge background |
-| showCharacterInfo | boolean | `true` | `false` | Show name, level, status info |
+| Option | Description |
+|--------|-------------|
+| Show Mana | Show/hide the mana gauge |
+| Show Movement | Show/hide the movement gauge |
+| Show Numbers | Display current/max values (e.g., "100/150") |
+| Show Labels | Display gauge labels (HP, MN, MV) |
+| Show Percentages | Display percentage (e.g., "67%") |
+| Show Character Info | Display name, level, and status |
 
 ---
 
-## Gauge Thresholds
+## Gauge Appearance
 
-Configure colors based on percentage values:
-
-| Threshold | Default Value | Default Color | Description |
-|-----------|---------------|---------------|-------------|
-| low | `30` | `#EF4444` (Red) | 0% to low value |
-| medium | `60` | `#F59E0B` (Orange) | low to medium value |
-| high | `90` | `#10B981` (Green) | medium to high value |
-| full | - | `#10B981` (Green) | high to 100% |
-
-### Threshold Configuration
-
-```typescript
-{
-  low: { value: 30, color: "#EF4444" },
-  medium: { value: 60, color: "#F59E0B" },
-  high: { value: 90, color: "#10B981" },
-  full: { color: "#10B981" }
-}
-```
-
-**How it works:**
-- If percentage ≤ `low.value`: Use `low.color`
-- If percentage ≤ `medium.value`: Use `medium.color`
-- If percentage ≤ `high.value`: Use `high.color`
-- If percentage > `high.value`: Use `full.color`
-
----
-
-## Character Info
-
-The status bar can display character information:
-
-| Field | Source | Description |
-|-------|--------|-------------|
-| name | GMCP/MSDP | Character name |
-| level | GMCP/MSDP | Character level |
-| class | GMCP | Character class (optional) |
-| race | GMCP | Character race (optional) |
-| experience | MSDP | Current experience |
-| experienceTNL | MSDP | Experience to next level |
-| status | GMCP | Array of status strings (e.g., ["Resting", "Leader"]) |
-
----
-
-## Status Bar Configuration
-
-Each gauge (health, mana, stamina) has:
-
-| Property | Type | Description |
-|----------|------|-------------|
-| id | string | Identifier: "health", "mana", "stamina" |
-| name | string | Display label: "HP", "MN", "MV" |
-| current | number | Current value |
-| max | number | Maximum value |
-| color | string | Base hex color (overridden by thresholds) |
-| visible | boolean | Show/hide this bar |
-| order | number | Display order (1-based) |
-
----
-
-## Data Sources
-
-### GMCP Fields
-
-The widget reads from these GMCP packages:
-
-**Char.Vitals:**
-| Field | Description |
-|-------|-------------|
-| hp | Current health |
-| mana / mn | Current mana |
-| movement / mv | Current movement |
-
-**Char.Maxstats:**
-| Field | Description |
-|-------|-------------|
-| maxhp | Maximum health |
-| maxmana | Maximum mana |
-| maxmove | Maximum movement |
-
-**Char.Base / Char.Info:**
-| Field | Description |
-|-------|-------------|
-| name | Character name |
-| level | Character level |
-| class | Character class |
-| race | Character race |
-
-**Group.Members (fallback):**
-Used when primary character data is unavailable.
-
----
-
-### MSDP Fields
-
-The widget supports multiple naming conventions:
-
-**Health:**
-- `HEALTH`, `HP`, `health`, `hp`
-
-**Health Max:**
-- `HEALTH_MAX`, `HP_MAX`, `health_max`, `hp_max`
-
-**Mana:**
-- `MANA`, `MN`, `mana`, `mn`
-
-**Mana Max:**
-- `MANA_MAX`, `MN_MAX`, `mana_max`, `mn_max`
-
-**Movement:**
-- `MOVEMENT`, `MV`, `move`, `movement`, `mv`
-
-**Movement Max:**
-- `MOVEMENT_MAX`, `MV_MAX`, `move_max`, `movement_max`, `mv_max`
-
-**Character Info:**
-- `CHARACTER_NAME`, `LEVEL`, `CLASS`, `RACE`
-- `EXPERIENCE`, `EXPERIENCE_TNL`
+| Option | Description |
+|--------|-------------|
+| Overlay Text | Show text on top of the gauge |
+| Center Overlay | Center the text (or right-align) |
+| Darker Outlines | Add stronger text shadows for readability |
+| Side by Side | Arrange gauges horizontally |
+| Thin Gauges | Use minimal height gauges |
+| Darker Background | Color the gauge background |
 
 ---
 
 ## Display Modes
 
-### Normal Mode
-- Full gauges with labels
-- Numbers and percentages visible
-- Character info panel
-
-### Compact Mode
-- Reduced spacing
-- Smaller fonts
-- Suitable for smaller screens
-
-### Ultra Compact Mode
-- Single-line display
-- Minimal height
-- Essential info only
-
-### Overlay vs Side-by-Side
-
-**Overlay Text (overlayText: true):**
-Text appears on top of the gauge fill
-
-**Side Text (overlayText: false):**
-Text appears next to the gauge
-
-**Side-by-Side (sideBySide: true):**
-Gauges arranged horizontally
-
-**Stacked (sideBySide: false):**
-Gauges stacked vertically
+| Mode | Description |
+|------|-------------|
+| Normal | Full gauges with all information |
+| Compact | Reduced spacing, smaller display |
+| Ultra Compact | Single-line, minimal display |
 
 ---
 
-## Utility Functions
+## Gauge Colors
 
-### Number Formatting
+Gauges change color based on your percentage:
 
-The `truncateNumber` function formats large numbers:
+| Level | Default Color | When |
+|-------|---------------|------|
+| Low | Red | 0-30% |
+| Medium | Orange | 31-60% |
+| High | Green | 61-90% |
+| Full | Green | 91-100% |
 
-| Value | Display |
-|-------|---------|
-| 1,500,000 | `1.5mil` |
-| 75,000 | `75.0k` |
-| 950 | `950` |
+### Customizing Thresholds
 
----
-
-## Settings Access
-
-### Right-Click Menu (Desktop)
-
-Right-click on the status bar to access settings:
-- Toggle individual display options
-- Configure thresholds
-- Adjust colors
-
-### Help Dialog
-
-Click the help icon (?) for information about:
-- Data sources (GMCP/MSDP)
-- Threshold configuration
-- Display mode explanations
+In the settings menu, you can adjust:
+- The percentage value for each threshold
+- The color for each threshold level
 
 ---
 
-## Example Configurations
+## Character Info
 
-### Minimal Display
-
-```json
-{
-  "showMana": false,
-  "showMovement": false,
-  "showNumbers": false,
-  "showLabels": false,
-  "showPercentages": true,
-  "overlayText": true,
-  "thinGauges": true,
-  "showCharacterInfo": false
-}
-```
-
-### Full Information
-
-```json
-{
-  "showMana": true,
-  "showMovement": true,
-  "showNumbers": true,
-  "showLabels": true,
-  "showPercentages": true,
-  "overlayText": true,
-  "centerOverlay": true,
-  "showCharacterInfo": true
-}
-```
-
-### Combat Focus
-
-```json
-{
-  "showMana": true,
-  "showMovement": false,
-  "showNumbers": true,
-  "showLabels": true,
-  "showPercentages": false,
-  "overlayText": true,
-  "sideBySide": true,
-  "gaugeThresholds": {
-    "low": { "value": 25, "color": "#DC2626" },
-    "medium": { "value": 50, "color": "#EA580C" },
-    "high": { "value": 75, "color": "#16A34A" },
-    "full": { "color": "#22C55E" }
-  }
-}
-```
+When enabled, displays:
+- Character name
+- Level
+- Class (if available)
+- Status effects (Resting, Leader, etc.)
 
 ---
 
-## Styling
+## Data Sources
 
-### Gauge Appearance
+The status bar gets data from your MUD via:
 
-- Border radius: rounded corners
-- Background: darkened version of gauge color
-- Fill: threshold-based color
-- Text: white with shadow for readability
+- **GMCP** - Char.Vitals, Char.Base packages
+- **MSDP** - HEALTH, MANA, MOVEMENT variables
 
-### Text Shadow
-
-When `darkerOutlines` is enabled:
-```css
-text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 2px rgba(0,0,0,0.5);
-```
+If you don't see data, your MUD may need to enable GMCP/MSDP in your account settings.
 
 ---
 
-## Mobile Optimizations
+## Mobile vs Desktop
 
-When `isMobile` is true:
-- Numbers hidden by default
-- Character info hidden by default
-- Touch-optimized controls
-- Reduced padding
+**Desktop defaults:**
+- All information visible
+- Side-by-side gauges
+
+**Mobile defaults:**
+- Numbers hidden to save space
+- Character info hidden

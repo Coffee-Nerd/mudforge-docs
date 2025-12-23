@@ -1,170 +1,6 @@
 # Terminal Widget
 
-The main output display for MUD text. Handles incoming data, command input, and provides built-in commands for navigation and debugging.
-
----
-
-## Widget Props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| widgetId | string | `"terminal"` | Unique identifier for widget-specific settings |
-| sessionId | string | - | Session ID for filtering events in multi-session mode |
-| isMobile | boolean | `false` | Enable mobile-optimized layout |
-| showSearch | boolean | - | Show/hide search UI |
-| hideInput | boolean | `false` | Hide the input component (for external rendering) |
-| isConnected | boolean | `false` | Initial connection state |
-| statusWidgetVisible | boolean | - | Triggers refit when status widget visibility changes |
-
----
-
-## Font Settings
-
-Font settings are configured per-widget via the `useWidgetSettings` hook.
-
-**localStorage Key:** `mud-client-widget-settings`
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| fontFamily | string | `"mono"` | Font family name (from font-config) |
-| fontSize | number | `14` | Font size in pixels |
-| fontWeight | string | `"normal"` | CSS font weight: "normal", "bold", or 100-900 |
-| zIndex | number | `10` | Widget z-index for layering |
-
----
-
-## Scrolling Behavior
-
-These settings are from the global client settings but directly affect the terminal:
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| autoScrollOnNewText | boolean | `true` | Auto-scroll to bottom when new text arrives |
-| resumeScrollOnCommand | boolean | `true` | Resume auto-scroll when sending commands |
-| smoothScrolling | boolean | `false` | Use smooth animation instead of instant jump |
-
----
-
-## Text Wrapping
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| autoWrapText | boolean | `false` | Wrap long lines at specified width |
-| wrapWidth | number | `80` | Characters before wrapping (40-300) |
-
----
-
-## Command Stacking
-
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| commandStackingEnabled | boolean | `true` | Allow multiple commands separated by a character |
-| commandStackingCharacter | string | `";"` | Separator character for command stacking |
-| keepLastCommand | boolean | `false` | Keep last command in input after sending |
-
-**Example:**
-```
-north;east;open door;south
-# Sends: north, east, open door, south (in sequence)
-```
-
----
-
-## Terminal Configuration
-
-The terminal uses xterm.js with these core options:
-
-| Option | Value | Description |
-|--------|-------|-------------|
-| scrollback | `10000` | Lines of scrollback history |
-| cursorBlink | `false` | Cursor disabled (output-only terminal) |
-| disableStdin | `true` | Input handled by TerminalInput component |
-| screenReaderMode | `true` | Accessibility support enabled |
-| convertEol | `true` | Convert EOL characters |
-| fastScrollModifier | `"shift"` | Hold Shift for fast scroll |
-| allowTransparency | `true` | Enable grayscale antialiasing |
-| cols | `120` | Initial columns |
-| rows | `30` | Initial rows |
-
----
-
-## Theme Colors
-
-The terminal uses a dark theme with standard ANSI colors:
-
-| Color | Hex Code | Usage |
-|-------|----------|-------|
-| background | `#000000` | Terminal background |
-| foreground | `#ffffff` | Default text color |
-| cursor | `transparent` | Cursor color (hidden) |
-| selectionBackground | `#414458` | Selected text background |
-| black | `#000000` | ANSI black |
-| red | `#ff5555` | ANSI red |
-| green | `#50fa7b` | ANSI green |
-| yellow | `#f1fa8c` | ANSI yellow |
-| blue | `#6272a4` | ANSI blue |
-| magenta | `#ff79c6` | ANSI magenta |
-| cyan | `#8be9fd` | ANSI cyan |
-| white | `#f8f8f2` | ANSI white |
-
-Bright variants are also available for each color.
-
----
-
-## Link Protocols
-
-The terminal supports clickable links with special protocols:
-
-| Protocol | Format | Description |
-|----------|--------|-------------|
-| send: | `send:command` | Sends single command when clicked |
-| prompt: | `prompt:text` | Places text in input for editing |
-| command:// | `command://cmd` | OSC8 hyperlinks from mapper |
-| mxp-menu: | `mxp-menu:data` | Multi-option MXP menu (right-click for options) |
-| http/https | Standard URLs | Opens in new tab |
-
-**Example MXP Link:**
-```
-\x1b]8;;send:look\x1b\\[look]\x1b]8;;\x1b\\
-```
-
----
-
-## Built-in Commands
-
-### Connection Commands
-
-| Command | Description |
-|---------|-------------|
-| `connect <host:port>` | Connect to MUD server |
-| `connect <host> <port> [tls]` | Connect with optional TLS |
-| `disconnect` | Disconnect from server |
-
-### Utility Commands
-
-| Command | Description |
-|---------|-------------|
-| `clear` | Clear terminal output |
-| `client help` | Show help information |
-| `history` | Show last 10 commands |
-
-### Debug Commands
-
-| Command | Description |
-|---------|-------------|
-| `testmxp` | Test MXP link functionality |
-| `testlinks` | Test various link types |
-| `testpassword` | Toggle password input mode |
-| `gmcpdebug` | Toggle GMCP debug messages |
-| `msdpdebug` | Toggle MSDP debug messages |
-
-### Mapper Commands
-
-| Command | Description |
-|---------|-------------|
-| `mapper find <room>` | Search map database for room |
-| `mapper goto <room>` | Navigate to room via mapper |
-| `mapper addnote <text>` | Add note to current room |
+The main display for MUD text output. This is where you see game text, send commands, and interact with the MUD.
 
 ---
 
@@ -172,83 +8,111 @@ The terminal supports clickable links with special protocols:
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+F` | Open search dialog |
+| `Ctrl+F` | Open search |
 | `Ctrl+V` | Paste from clipboard |
-| `Ctrl+C` | Copy selected text (when text is selected) |
+| `Ctrl+C` | Copy selected text |
 | `Up Arrow` | Previous command in history |
 | `Down Arrow` | Next command in history |
-| `Tab` | Command completion (if available) |
 | `Enter` | Send command |
 | `Escape` | Clear current input |
 
 ---
 
-## Connection Settings
+## Built-in Commands
 
-### TLS Options
+### Connection
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| useTLS | boolean | `false` | Use TLS/SSL encryption |
-| allowSelfSignedCerts | boolean | `true` | Accept self-signed certificates |
+| Command | Description |
+|---------|-------------|
+| `connect <host:port>` | Connect to a MUD server |
+| `connect <host> <port> [tls]` | Connect with optional TLS encryption |
+| `disconnect` | Disconnect from the server |
 
-When TLS is enabled, "(TLS)" is appended to the connection status.
+### Utility
 
-### NAWS (Negotiate About Window Size)
+| Command | Description |
+|---------|-------------|
+| `clear` | Clear the terminal output |
+| `history` | Show last 10 commands |
+| `client help` | Show help information |
 
-The terminal automatically sends window size to the server:
-- Sent on initial connection with current cols/rows
-- Re-sent when terminal is resized
+### Mapper
 
----
+| Command | Description |
+|---------|-------------|
+| `mapper find <room>` | Search the map database |
+| `mapper goto <room>` | Navigate to a room |
+| `mapper addnote <text>` | Add a note to the current room |
 
-## Custom Events
+### Debug
 
-### Dispatched Events
-
-| Event | Description |
-|-------|-------------|
-| `terminal-write` | Non-gagged text to write |
-| `terminalCommand` | External command to execute |
-| `map:goto` | Map navigation command |
-| `terminalSearchRequest` | Request to open search UI |
-| `mxp-event` | MXP tag processing |
-| `mccp-event` | MCCP compression event |
-
-### Listened Events
-
-| Event | Description |
-|-------|-------------|
-| `widgetSettingsChanged` | Update fonts when settings change |
-| `settingsChanged` | Sync global settings |
-| `terminal-write` | Write text to terminal |
-| `terminalCommand` | Process external commands |
-| `resize` | Window resize |
+| Command | Description |
+|---------|-------------|
+| `gmcpdebug` | Toggle GMCP message display |
+| `msdpdebug` | Toggle MSDP message display |
 
 ---
 
-## Plugin Font API
+## Display Settings
 
-Plugins can customize widget fonts via the API:
+These settings affect the terminal display. Access them in **Settings → Display**.
 
-```lua
--- Get current font settings
-local fontFamily = getWidgetProperty(widgetId, "fontFamily")
-local fontSize = getWidgetProperty(widgetId, "fontSize")
+### Scrolling
 
--- Set font settings
-setWidgetProperty(widgetId, "fontFamily", "mono")
-setWidgetProperty(widgetId, "fontSize", 16)
-setWidgetProperty(widgetId, "fontWeight", "bold")
-```
+| Setting | Description |
+|---------|-------------|
+| Auto-scroll on new text | Automatically scroll down when new text arrives |
+| Resume scroll on command | Re-enable auto-scroll when you send a command |
+| Smooth scrolling | Animate scrolling instead of jumping instantly |
+
+### Text Wrapping
+
+| Setting | Description |
+|---------|-------------|
+| Auto-wrap text | Wrap long lines at a specific width |
+| Wrap width | Number of characters before wrapping (40-300) |
 
 ---
 
-## Mobile Optimizations
+## Input Settings
 
-When `isMobile` is true:
-- Reduced padding (4px vs 8px)
-- Minimum height: 200px (vs 400px on desktop)
-- Full width layout
-- Touch-optimized scrolling
-- Viewport resize handling for mobile keyboards
+Access these in **Settings → General → Input**.
+
+| Setting | Description |
+|---------|-------------|
+| Command stacking | Send multiple commands with a separator (e.g., `north;east;south`) |
+| Stacking character | The separator character (default: `;`) |
+| Keep last command | Keep the previous command in the input box |
+| Command history size | How many commands to remember (10-1000) |
+
+---
+
+## Font Settings
+
+Right-click on the terminal or go to **Settings → Display** to change:
+
+| Setting | Options |
+|---------|---------|
+| Font family | Mono, Sans, Serif |
+| Font size | 6-24 pixels |
+
+---
+
+## Clickable Links
+
+The terminal supports clickable links from the MUD:
+
+- **Regular URLs** - Opens in a new browser tab
+- **MXP send links** - Sends a command when clicked
+- **MXP menu links** - Right-click for multiple options
+
+---
+
+## Connection Options
+
+When connecting to a MUD:
+
+| Option | Description |
+|--------|-------------|
+| TLS | Use encrypted connection (add `tls` to connect command) |
+| Allow self-signed certs | Accept self-signed SSL certificates |
