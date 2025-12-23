@@ -1,0 +1,401 @@
+# Protocol Reference
+
+Complete reference for GMCP (Generic MUD Communication Protocol) and MSDP (MUD Server Data Protocol) fields used by MudForge widgets.
+
+---
+
+## Protocol Overview
+
+MudForge supports two primary protocols for receiving game data:
+
+| Protocol | Description | Typical Use |
+|----------|-------------|-------------|
+| GMCP | JSON-based, structured packages | Modern MUDs (Aardwolf, Achaea, etc.) |
+| MSDP | Key-value pairs | Many MUDs, simpler format |
+
+---
+
+## GMCP Packages
+
+### Char.Vitals
+
+Character vital statistics.
+
+| Field | Type | Description | Used By |
+|-------|------|-------------|---------|
+| hp | number | Current health points | Status Bar |
+| mana | number | Current mana | Status Bar |
+| mn | number | Current mana (alternate) | Status Bar |
+| movement | number | Current movement | Status Bar |
+| mv | number | Current movement (alternate) | Status Bar |
+| maxhp | number | Maximum health | Status Bar |
+| maxmana | number | Maximum mana | Status Bar |
+| maxmove | number | Maximum movement | Status Bar |
+
+**Example:**
+```json
+{
+  "hp": 450,
+  "mana": 200,
+  "movement": 350,
+  "maxhp": 500,
+  "maxmana": 250,
+  "maxmove": 400
+}
+```
+
+---
+
+### Char.Maxstats
+
+Maximum character statistics (alternative location).
+
+| Field | Type | Description | Used By |
+|-------|------|-------------|---------|
+| maxhp | number | Maximum health | Status Bar |
+| maxmana | number | Maximum mana | Status Bar |
+| maxmove | number | Maximum movement | Status Bar |
+
+---
+
+### Char.Base / Char.Info
+
+Basic character information.
+
+| Field | Type | Description | Used By |
+|-------|------|-------------|---------|
+| name | string | Character name | Status Bar |
+| level | number | Character level | Status Bar |
+| class | string | Character class | Status Bar |
+| race | string | Character race | Status Bar |
+
+**Example:**
+```json
+{
+  "name": "Adventurer",
+  "level": 50,
+  "class": "Warrior",
+  "race": "Human"
+}
+```
+
+---
+
+### Group.Members
+
+Party/group member information.
+
+| Field | Type | Description | Used By |
+|-------|------|-------------|---------|
+| name | string | Member name | Group Widget |
+| info.hp | number | Current health | Group Widget |
+| info.mhp | number | Maximum health | Group Widget |
+| info.mn | number | Current mana | Group Widget |
+| info.mmn | number | Maximum mana | Group Widget |
+| info.mv | number | Current movement | Group Widget |
+| info.mmv | number | Maximum movement | Group Widget |
+| info.align | number | Alignment | Group Widget |
+| info.tnl | number | Experience to next level | Group Widget |
+| info.qt | number | Quest time remaining | Group Widget |
+| info.qs | number | Quest status (0-3) | Group Widget |
+| info.lvl | number | Character level | Group Widget |
+| info.here | number | Present (1=yes) | Group Widget |
+
+**Example:**
+```json
+[
+  {
+    "name": "Aragorn",
+    "info": {
+      "hp": 85,
+      "mhp": 100,
+      "mn": 45,
+      "mmn": 60,
+      "mv": 78,
+      "mmv": 100,
+      "align": 0,
+      "tnl": 5000,
+      "qt": 0,
+      "qs": 0,
+      "lvl": 12,
+      "here": 1
+    }
+  }
+]
+```
+
+---
+
+### Group.Enemies
+
+Enemy group information (same structure as Group.Members).
+
+---
+
+### Group.Info
+
+Group metadata.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| groupname | string | Group name |
+| leader | string | Leader name |
+| created | string | Creation date |
+| status | string | Group status |
+| count | number | Member count |
+| kills | number | Kill count |
+| exp | number | Experience gained |
+
+---
+
+### Room.Info
+
+Room/location information.
+
+| Field | Type | Description | Used By |
+|-------|------|-------------|---------|
+| num | number | Room vnum (virtual number) | Map Widget |
+| name | string | Room name | Map Widget |
+| zone | string | Zone/area name | Map Widget |
+| terrain | string | Terrain type | Map Widget |
+| x | number | X coordinate | Map Widget |
+| y | number | Y coordinate | Map Widget |
+| z | number | Z/level coordinate | Map Widget |
+| exits | object | Exit directions → vnums | Map Widget |
+| details | string | Room description | Map Widget |
+| building | string | Building type | Map Widget |
+
+**Example:**
+```json
+{
+  "num": 3001,
+  "name": "Town Square",
+  "zone": "Midgaard",
+  "terrain": "city",
+  "x": 0,
+  "y": 0,
+  "z": 0,
+  "exits": {
+    "n": 3002,
+    "s": 3003,
+    "e": 3004,
+    "w": 3005
+  },
+  "details": "The center of the bustling town..."
+}
+```
+
+---
+
+### Comm.Channel.Text
+
+Channel communication messages.
+
+| Field | Type | Description | Used By |
+|-------|------|-------------|---------|
+| channel | string | Channel name | Chat Widget |
+| talker | string | Speaker name | Chat Widget |
+| text | string | Message content | Chat Widget |
+
+---
+
+### Comm.Channel.Tell
+
+Private tell messages.
+
+| Field | Type | Description | Used By |
+|-------|------|-------------|---------|
+| from | string | Sender name | Chat Widget |
+| text | string | Message content | Chat Widget |
+
+---
+
+## MSDP Variables
+
+MSDP uses simple key-value pairs. MudForge supports multiple naming conventions for compatibility.
+
+### Health Variables
+
+| Variable | Alternates | Description | Used By |
+|----------|------------|-------------|---------|
+| HEALTH | HP, health, hp | Current health | Status Bar |
+| HEALTH_MAX | HP_MAX, health_max, hp_max | Maximum health | Status Bar |
+
+---
+
+### Mana Variables
+
+| Variable | Alternates | Description | Used By |
+|----------|------------|-------------|---------|
+| MANA | MN, mana, mn | Current mana | Status Bar |
+| MANA_MAX | MN_MAX, mana_max, mn_max | Maximum mana | Status Bar |
+
+---
+
+### Movement Variables
+
+| Variable | Alternates | Description | Used By |
+|----------|------------|-------------|---------|
+| MOVEMENT | MV, move, movement, mv | Current movement | Status Bar |
+| MOVEMENT_MAX | MV_MAX, move_max, movement_max, mv_max | Maximum movement | Status Bar |
+
+---
+
+### Character Variables
+
+| Variable | Description | Used By |
+|----------|-------------|---------|
+| CHARACTER_NAME | Character name | Status Bar |
+| LEVEL | Character level | Status Bar |
+| CLASS | Character class | Status Bar |
+| RACE | Character race | Status Bar |
+| EXPERIENCE | Current experience | Status Bar |
+| EXPERIENCE_TNL | Experience to next level | Status Bar |
+
+---
+
+### Room Variables
+
+| Variable | Description | Used By |
+|----------|-------------|---------|
+| ROOM_VNUM | Room virtual number | Map Widget |
+| ROOM_NAME | Room name | Map Widget |
+| ROOM_ZONE | Zone/area name | Map Widget |
+| ROOM_TERRAIN | Terrain type | Map Widget |
+| ROOM_EXITS | Exit directions | Map Widget |
+| PREVIOUS_ROOM_VNUM | Previous room vnum | Map Widget |
+
+---
+
+## Protocol Echo Settings
+
+Configure how protocol messages appear in the terminal.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| protocolEchoColor | number | `220` | xterm-256 color code for GMCP/MSDP echo |
+
+### xterm-256 Color Examples
+
+| Code | Color |
+|------|-------|
+| 220 | Yellow (default) |
+| 46 | Bright Green |
+| 51 | Cyan |
+| 201 | Magenta |
+| 196 | Red |
+
+---
+
+## Debugging Protocols
+
+### GMCP Debug Mode
+
+Enable via terminal command:
+```
+gmcpdebug
+```
+
+This shows raw GMCP packages in the terminal with the protocol echo color.
+
+### MSDP Debug Mode
+
+Enable via terminal command:
+```
+msdpdebug
+```
+
+This shows raw MSDP variable updates in the terminal.
+
+---
+
+## Field Mapping Configuration
+
+For the Map Widget, you can configure how GMCP/MSDP fields map to room data:
+
+**localStorage Key:** `map-configuration`
+
+```typescript
+{
+  protocol: 'GMCP',
+  enabled: true,
+  fieldMapping: {
+    roomId: 'num',           // Field for room vnum
+    roomName: 'name',        // Field for room name
+    zone: 'zone',            // Field for zone/area
+    terrain: 'terrain',      // Field for terrain type
+    coordinateX: 'x',        // Field for X coordinate
+    coordinateY: 'y',        // Field for Y coordinate
+    coordinateZ: 'z',        // Field for Z coordinate
+    description: 'details',  // Field for description
+    exits: 'exits',          // Field for exits
+    building: 'building'     // Field for building type
+  }
+}
+```
+
+### Common MUD Configurations
+
+**Aardwolf:**
+```typescript
+{
+  roomId: 'num',
+  roomName: 'name',
+  zone: 'zone',
+  terrain: 'terrain',
+  coordinateX: 'coord.x',
+  coordinateY: 'coord.y',
+  coordinateZ: 'coord.z',
+  exits: 'exits'
+}
+```
+
+**IRE Games (Achaea, Lusternia, etc.):**
+```typescript
+{
+  roomId: 'num',
+  roomName: 'name',
+  zone: 'area',
+  terrain: 'environment',
+  exits: 'exits'
+}
+```
+
+---
+
+## Protocol Negotiation
+
+MudForge automatically negotiates protocol support with the server:
+
+1. **GMCP** - Advertised via Telnet option 201
+2. **MSDP** - Advertised via Telnet option 69
+3. **MCCP** - Compression via Telnet option 86
+4. **MXP** - MUD eXtension Protocol
+5. **NAWS** - Window size negotiation
+
+The client will use whichever protocols the server supports.
+
+---
+
+## Tips
+
+### Protocol Not Working?
+
+1. Check if your MUD supports GMCP or MSDP
+2. Enable debug mode (`gmcpdebug` or `msdpdebug`)
+3. Check the field mappings match your MUD's format
+4. Some MUDs require enabling GMCP in your account settings
+
+### Custom Field Mapping
+
+If your MUD uses non-standard field names:
+1. Open Map Settings → Protocol Configuration
+2. Edit the field mappings
+3. Save and reconnect
+
+### Multiple Protocol Support
+
+MudForge can use both GMCP and MSDP simultaneously:
+- Status Bar checks both sources
+- GMCP takes priority when available
+- Falls back to MSDP if GMCP data is missing
