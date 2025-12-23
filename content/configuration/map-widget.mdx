@@ -1,0 +1,343 @@
+# Map Widget
+
+The map widget visualizes MUD rooms, tracks movement, and stores room data in a per-MUD database. Supports GMCP and MSDP protocols for room information.
+
+---
+
+## Widget Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| widgetId | string | - | Widget identifier for settings |
+| sessionId | string | - | Session ID for database segregation |
+| isMobileOverlay | boolean | `false` | Render as mobile overlay |
+| isTransparent | boolean | `false` | Transparent background |
+| forceShowPlaceholder | boolean | `false` | Force placeholder view |
+| send | function | - | Function to send commands to MUD |
+| isConnected | boolean | `false` | Connection status |
+| manager | any | - | Connection manager for MSDP requests |
+
+---
+
+## Map Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| showVnums | boolean | `false` | Display room virtual numbers |
+| zoomLevel | number | `1.0` | Zoom level (1.0 = default) |
+| autoSave | boolean | `true` | Auto-save rooms to database |
+| maxRooms | number | `10000` | Maximum rooms to store |
+| terrainStyles | TerrainStyle[] | See below | Terrain color/style definitions |
+
+---
+
+## Terrain Styles
+
+Each terrain style defines how a terrain type is rendered:
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| name | string | Yes | Terrain type name (e.g., "forest", "water") |
+| color | string | Yes | Hex color code |
+| image | string | No | Optional texture image URL |
+
+### Default Terrain Styles
+
+| Terrain | Color | Hex Code |
+|---------|-------|----------|
+| default | Blue | `#3498db` |
+| inside | Dark Gray | `#2c3e50` |
+| field | Green | `#27ae60` |
+| forest | Teal | `#16a085` |
+| water | Deep Blue | `#2980b9` |
+| city | Purple | `#8e44ad` |
+| road | Gray | `#95a5a6` |
+
+### Custom Terrain Styles
+
+You can add custom terrain styles via the settings dialog or by configuring the field mapping to match your MUD's terrain types.
+
+---
+
+## Protocol Configuration
+
+**localStorage Key:** `map-configuration`
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| protocol | `"GMCP"` \| `"MSDP"` | `"GMCP"` | Protocol type |
+| enabled | boolean | `true` | Enable room tracking |
+| name | string | - | Configuration profile name |
+| description | string | - | Profile description |
+| fieldMapping | MapFieldConfig | See below | Field mapping configuration |
+
+---
+
+## Field Mapping
+
+Configure how GMCP/MSDP fields map to room data:
+
+| Field | Type | Description | Default |
+|-------|------|-------------|---------|
+| roomId | string | Room ID field | `"num"` |
+| roomName | string | Room name field | `"name"` |
+| zone | string | Zone/area field | `"zone"` |
+| terrain | string | Terrain type field | `"terrain"` |
+| coordinateX | string | X coordinate field | `"x"` |
+| coordinateY | string | Y coordinate field | `"y"` |
+| coordinateZ | string | Z/level coordinate field | `"z"` |
+| description | string | Description field | `"details"` |
+| exits | string | Exits field | `"exits"` |
+| building | string | Building field | `"building"` |
+| customFields | object | Custom field mappings | `{}` |
+
+**Example Configuration:**
+```typescript
+{
+  protocol: 'GMCP',
+  enabled: true,
+  fieldMapping: {
+    roomId: 'num',
+    roomName: 'name',
+    zone: 'zone',
+    terrain: 'terrain',
+    coordinateX: 'x',
+    coordinateY: 'y',
+    coordinateZ: 'z',
+    description: 'details',
+    exits: 'exits',
+    building: 'building'
+  },
+  name: 'Default (GMCP)',
+  description: 'Standard GMCP Room.Info format'
+}
+```
+
+---
+
+## Room Data Structure
+
+Each room stored in the database has:
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| num | number | Yes | Virtual number (primary key) |
+| name | string | Yes | Room name |
+| zone | string | Yes | Zone/area name |
+| terrain | string | Yes | Terrain type |
+| x | number | Yes | X coordinate |
+| y | number | Yes | Y coordinate |
+| z | number | Yes | Z/level coordinate |
+| exits | object | Yes | Exit directions → room vnums |
+| details | string | No | Room description |
+| notes | string | No | Player notes |
+| building | string | No | Building/area type |
+| lastVisited | number | No | Timestamp of last visit |
+| timesVisited | number | No | Visit counter |
+
+### Exit Format
+
+Exits map direction names to room vnums:
+```typescript
+{
+  "n": 3001,
+  "s": 3003,
+  "e": 3004,
+  "w": 3002,
+  "u": 3100,
+  "d": 2900
+}
+```
+
+---
+
+## Map State Structure
+
+| Property | Type | Description |
+|----------|------|-------------|
+| levels | object | Map organized by Z level |
+| currentLevel | number | Active display level |
+| currentRoom | number \| null | Current room vnum |
+
+**Levels Structure:**
+```typescript
+{
+  0: {
+    rooms: { [vnum]: Room },
+    currentRoom: 3001
+  },
+  1: {
+    rooms: { [vnum]: Room },
+    currentRoom: null
+  }
+}
+```
+
+---
+
+## Database Integration
+
+The map uses IndexedDB for persistent storage, segregated by session/MUD.
+
+**Database Name:** `mud-map-database-{sessionId}`
+
+### Object Stores
+
+| Store | Key | Description |
+|-------|-----|-------------|
+| rooms | num | Room data indexed by vnum |
+| connections | [fromRoom, direction] | Room connections for pathfinding |
+| mapState | id | Current map state |
+| mapSettings | id | User settings |
+| metadata | key | Database metadata |
+
+### Indexes
+
+**rooms:**
+- `zone` - Find rooms by zone
+- `terrain` - Find rooms by terrain
+- `level` - Find rooms by Z coordinate
+- `coordinates` - Find by [x, y, z]
+- `lastVisited` - Sort by visit time
+
+**connections:**
+- `fromRoom` - Find exits from a room
+- `toRoom` - Find entrances to a room
+- `level` - Find connections on a level
+
+---
+
+## Event Listeners
+
+### Listened Events
+
+| Event | Description |
+|-------|-------------|
+| `mud-command` | Track movement commands (n, s, e, w, u, d, etc.) |
+| `map:config-updated` | Protocol configuration changes |
+| `map:goto` | Navigation request |
+
+### Emitted Events
+
+| Event | Description |
+|-------|-------------|
+| `map-db:ready` | Database initialized |
+| `map-manager:movement-command` | Movement command detected |
+
+---
+
+## Movement Tracking
+
+The widget tracks player movement to update room positions:
+
+### Direction Normalization
+
+| Full Direction | Short Form |
+|----------------|------------|
+| north | n |
+| south | s |
+| east | e |
+| west | w |
+| northeast | ne |
+| northwest | nw |
+| southeast | se |
+| southwest | sw |
+| up | u |
+| down | d |
+
+### Level Changes
+
+- `up` / `u` → Increment Z coordinate
+- `down` / `d` → Decrement Z coordinate
+
+### Movement Timeout
+
+Movement direction is tracked for 3 seconds, then cleared. This handles the time between sending a command and receiving room data.
+
+---
+
+## Context Menu Actions
+
+Right-click on a room for:
+
+| Action | Description |
+|--------|-------------|
+| Edit Terrain | Change room terrain type |
+| Add/Edit Notes | Add player notes to room |
+| Delete Room | Remove room from database |
+| Go To Room | Navigate to this room |
+| Copy Vnum | Copy room vnum to clipboard |
+
+---
+
+## Toolbar Controls
+
+| Control | Description |
+|---------|-------------|
+| Zoom In (+) | Increase zoom level |
+| Zoom Out (-) | Decrease zoom level |
+| Reset | Reset view to current room |
+| Level Up (↑) | View higher level |
+| Level Down (↓) | View lower level |
+| Settings (⚙) | Open settings dialog |
+| Database (📁) | Switch map database |
+| Help (?) | Show help information |
+
+---
+
+## WebGL Rendering
+
+The map uses WebGL for hardware-accelerated rendering:
+
+- `mapRendererRef` - Main map renderer
+- `hoverRendererRef` - Hover overlay renderer
+- Uses `createOptimalRenderer()` for automatic fallback
+
+---
+
+## Hooks Used
+
+| Hook | Purpose |
+|------|---------|
+| `useGMCP()` | Access GMCP room data |
+| `useMapManager()` | Map persistence and operations |
+| `useMapDatabase()` | IndexedDB operations |
+| `useToast()` | Toast notifications |
+| `useWidgetSettings()` | Font configuration |
+
+---
+
+## Mobile Display
+
+When `isMobileOverlay` is true:
+- Overlay positioning
+- Touch-optimized controls
+- Reduced UI chrome
+- Swipe gestures (if enabled)
+
+---
+
+## Tips
+
+### Mapping a New MUD
+
+1. Connect to the MUD
+2. Open Map Settings → Protocol Configuration
+3. Select GMCP or MSDP
+4. Configure field mappings to match your MUD
+5. Walk around to populate the map
+
+### Troubleshooting
+
+**Rooms not appearing:**
+- Check protocol configuration matches your MUD
+- Verify field mappings are correct
+- Enable debug mode to see raw GMCP/MSDP data
+
+**Wrong coordinates:**
+- Check coordinateX/Y/Z field mappings
+- Some MUDs use different field names (coord.x vs x)
+
+**Missing terrain colors:**
+- Add custom terrain styles for your MUD's terrain types
+- Check the terrain field mapping
