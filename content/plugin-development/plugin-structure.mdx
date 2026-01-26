@@ -29,11 +29,24 @@ end
 print("Loaded!")
 ```
 
-## Key Concepts
+## Lifecycle Methods
+
+Plugins can define these global functions to hook into the plugin lifecycle:
+
+| Function | Alias | When Called |
+|----------|-------|-------------|
+| `init()` | `onPluginInstall()` | When plugin is loaded |
+| `onPluginEnable()` | - | After init, each time plugin is enabled |
+| `onPluginDisable()` | - | Before cleanup, each time plugin is disabled |
+| `cleanup()` | `onPluginClose()` | When plugin is unloaded |
+
+**Lifecycle Order:**
+- **Load:** `init()` → `onPluginEnable()`
+- **Unload:** `onPluginDisable()` → `cleanup()`
 
 ### The init() Function
 
-The `init()` function is called after the canvas is ready for drawing:
+The `init()` function (or its alias `onPluginInstall()`) is called after the canvas is ready for drawing:
 
 ```lua
 local widget = createWidget({
@@ -53,6 +66,41 @@ registerWidgetEvent(widget, "resize", function() draw() end)
 
 function init()
   draw()
+end
+```
+
+### Enable/Disable Hooks
+
+Use `onPluginEnable()` and `onPluginDisable()` for operations that should happen each time the plugin is toggled:
+
+```lua
+local heartbeatTimer = nil
+
+function init()
+  -- One-time setup
+  print("Plugin installed!")
+end
+
+function onPluginEnable()
+  -- Start operations when enabled
+  heartbeatTimer = addTimer(10000, function()
+    Send("look")
+  end, true)
+  print("Plugin enabled - starting heartbeat")
+end
+
+function onPluginDisable()
+  -- Pause operations when disabled
+  if heartbeatTimer then
+    removeTimer(heartbeatTimer)
+    heartbeatTimer = nil
+  end
+  print("Plugin disabled - stopped heartbeat")
+end
+
+function cleanup()
+  -- Final cleanup when unloaded
+  print("Plugin unloaded!")
 end
 ```
 
@@ -145,6 +193,26 @@ MudForge automatically cleans up when plugins are unloaded:
 - Widgets are destroyed
 - Timers are cancelled
 - Event listeners are removed
+
+For custom cleanup logic, define the `cleanup()` function (or its alias `onPluginClose()`):
+
+```lua
+local connections = {}
+
+function init()
+  -- Setup connections, resources, etc.
+  connections.database = openDatabase()
+end
+
+function cleanup()
+  -- Custom cleanup when plugin unloads
+  if connections.database then
+    connections.database:close()
+  end
+  saveTable("my_plugin_state", currentState)
+  print("Plugin cleaned up!")
+end
+```
 
 ## registerCommand
 
