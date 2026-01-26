@@ -63,19 +63,16 @@ echo(text, color?)
 | text | string | Yes | - | Text to display in terminal |
 | color | string | No | - | Optional color for the text |
 
+> **Note:** For most use cases, prefer `print()` for plain text or `utilprint()` for colored output with color codes.
+
 **Example:**
 ```lua
--- Simple echo
-echo("Plugin loaded successfully!")
+-- Prefer print() or utilprint() for output:
+print("Plugin loaded successfully!")
+utilprint("$GSuccess: $wPlugin loaded!")  -- Green "Success:" with white text
 
--- With color
-echo("Warning: Low health!", "#ff0000")
-echo("Quest complete!", "#00ff00")
-
--- Multi-line output
-echo("=== Combat Summary ===")
-echo("Damage dealt: 150")
-echo("Damage taken: 45")
+-- echo() still works for backwards compatibility:
+echo("Legacy message", "#ff0000")
 ```
 
 ---
@@ -102,7 +99,7 @@ print("Processing trigger...")
 
 ### utilprint
 
-Print a utility message (similar to print but may have different formatting).
+Print colored text to the terminal with automatic color code parsing. This is the **recommended function** for colored output.
 
 ```lua
 utilprint(message)
@@ -110,12 +107,38 @@ utilprint(message)
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| message | string | Yes | Utility message to print |
+| message | string | Yes | Text with color codes to print |
+
+**Color Codes:**
+
+| Code | Color | Example |
+|------|-------|---------|
+| `$R` | Red | `$RError` |
+| `$G` | Green | `$GSuccess` |
+| `$B` | Blue | `$BInfo` |
+| `$Y` | Yellow | `$YWarning` |
+| `$C` | Cyan | `$CNote` |
+| `$M` | Magenta | `$MSpecial` |
+| `$w` | White | `$wText` |
+| `$xNNN` | xterm 256 | `$x092` (bright green) |
+| `$XRRGGBB` | True color | `$XFF0000` (red) |
 
 **Example:**
 ```lua
-utilprint("Timer expired")
-utilprint("Connection status: connected")
+-- Basic colors
+utilprint("$RError: $wConnection failed")
+utilprint("$GSuccess: $wOperation complete")
+utilprint("$YWarning: $wLow health!")
+
+-- xterm 256 colors (for more color options)
+utilprint("$x092Fancy $x091colored $x090text")
+
+-- True color RGB hex
+utilprint("$XFF0000Red $X00FF00Green $X0000FFBlue")
+
+-- Status messages
+utilprint("$C[Info] $wPlayer joined the game")
+utilprint("$M[System] $wSaving data...")
 ```
 
 ---
@@ -227,13 +250,16 @@ registerCommand(commandName, handler, description?)
 ```lua
 -- Register a simple command
 registerCommand("hello", function(args)
-  echo("Hello, " .. (args or "world") .. "!")
+  print("Hello, " .. (args or "world") .. "!")
+  utilprint("$G[Greeting] $wHello, " .. (args or "world") .. "!")
 end, "Say hello to someone")
 
 -- Register a status command
 registerCommand("status", function()
-  echo("HP: " .. getVariable("hp") .. "/" .. getVariable("maxhp"))
-  echo("MP: " .. getVariable("mp") .. "/" .. getVariable("maxmp"))
+  print("HP: " .. getVariable("hp") .. "/" .. getVariable("maxhp"))
+  print("MP: " .. getVariable("mp") .. "/" .. getVariable("maxmp"))
+  utilprint("$RHP: $w" .. getVariable("hp") .. "/" .. getVariable("maxhp"))
+  utilprint("$BMP: $w" .. getVariable("mp") .. "/" .. getVariable("maxmp"))
 end, "Show character status")
 
 -- Register a command with arguments
@@ -241,7 +267,8 @@ registerCommand("goto", function(args)
   if args then
     send("speedwalk " .. args)
   else
-    echo("Usage: /goto <destination>")
+    print("Usage: /goto <destination>")
+    utilprint("$YUsage: $w/goto <destination>")
   end
 end, "Go to a named location")
 ```
@@ -337,9 +364,11 @@ registerCommand("attack", function(args)
     targetName = target
     combatActive = true
     send("kill " .. target)
-    echo("Starting combat with " .. target, "#ff6600")
+    print("Starting combat with " .. target)
+    utilprint("$R[Combat] $wTargeting: " .. target)
   else
-    echo("Usage: /attack <target>", "#ff0000")
+    print("Usage: /attack <target>")
+    utilprint("$RUsage: $w/attack <target>")
   end
 end, "Start combat with a target")
 
@@ -347,9 +376,11 @@ registerCommand("flee", function()
   if combatActive then
     combatActive = false
     send("flee")
-    echo("Fleeing from combat!", "#ffff00")
+    print("Fleeing from combat!")
+    utilprint("$Y[Flee] $wEscaping combat!")
   else
-    echo("Not in combat", "#888888")
+    print("Not in combat")
+    utilprint("$w[Info] Not in combat")
   end
 end, "Flee from combat")
 
@@ -363,7 +394,8 @@ end)
 addTrigger("is DEAD", function(line)
   if combatActive then
     combatActive = false
-    echo("Combat ended - " .. targetName .. " defeated!", "#00ff00")
+    print("Combat ended - " .. targetName .. " defeated!")
+    utilprint("$G[Victory] $w" .. targetName .. " defeated!")
     targetName = nil
   end
 end)
