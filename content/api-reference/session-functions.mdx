@@ -265,28 +265,45 @@ sendToOthers("assist tank")
 
 ## Cross-Session Variables
 
+Variables in another session can be either **session-level** (Settings > Variables) or **plugin-specific** (a particular plugin's private variable).
+
 ### getSessionVariable
 
 Get a variable's value from another session.
 
 ```lua
+-- Get session-level variable
 getSessionVariable(sessionName, variableName)
+
+-- Get a specific plugin's variable from that session
+getSessionVariable(sessionName, variableName, pluginId)
 ```
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | sessionName | string | Yes | The session name |
 | variableName | string | Yes | The variable name to retrieve |
+| pluginId | string | No | If provided, gets that plugin's private variable |
 
 **Returns:** `any` - The variable value, or `nil` if not found.
 
 
 **Example:**
 ```lua
--- Get healer's current mana
+-- Get session-level variable (Settings > Variables)
 local healerMana = getSessionVariable("Healer", "currentMana")
 if healerMana and healerMana < 100 then
-  print("Healer is low on mana!")
+  utilprint("$Y[WARNING]$W Healer is low on mana: " .. healerMana)
+end
+
+-- Get a specific plugin's variable from another session
+-- First, find the plugin ID
+local combatPlugin = findPluginByName("Combat Tracker")
+if combatPlugin then
+  local tankTarget = getSessionVariable("Tank", "current_target", combatPlugin.id)
+  if tankTarget then
+    utilprint("$C[INFO]$W Tank is targeting: " .. tankTarget)
+  end
 end
 ```
 
@@ -297,7 +314,11 @@ end
 Set a variable's value in another session.
 
 ```lua
+-- Set session-level variable
 setSessionVariable(sessionName, variableName, value)
+
+-- Set a specific plugin's variable in that session
+setSessionVariable(sessionName, variableName, value, pluginId)
 ```
 
 | Parameter | Type | Required | Description |
@@ -305,15 +326,21 @@ setSessionVariable(sessionName, variableName, value)
 | sessionName | string | Yes | The session name |
 | variableName | string | Yes | The variable name to set |
 | value | any | Yes | The value to set |
+| pluginId | string | No | If provided, sets that plugin's private variable |
 
 **Returns:** `boolean` - `true` if the variable was set successfully.
 
 
 **Example:**
 ```lua
--- Share target info with other sessions
-setSessionVariable("Tank", "currentTarget", "Dragon")
-setSessionVariable("Healer", "healTarget", "Tank")
+-- Set session-level variables for coordination
+setSessionVariable("Tank", "currentTarget", "Ancient Dragon")
+setSessionVariable("Healer", "healPriority", "Tank")
+setSessionVariable("DPS", "assistTarget", "Tank")
+
+-- Set a specific plugin's variable remotely
+local myPluginId = getPluginId()
+setSessionVariable("Healer", "heal_request", "Tank", myPluginId)
 ```
 
 ---
@@ -335,11 +362,13 @@ getAllSessionVariables(variableName)
 
 **Example:**
 ```lua
--- Get health from all sessions
+-- Get health from all characters for a group display
 local healthData = getAllSessionVariables("currentHealth")
 
+utilprint("$G[GROUP STATUS]$W")
 for sessionId, data in pairs(healthData) do
-  print(data.name .. ": " .. data.value .. " HP")
+  local color = data.value > 500 and "$G" or data.value > 200 and "$Y" or "$R"
+  utilprint("  " .. color .. data.name .. "$W: " .. data.value .. " HP")
 end
 ```
 
@@ -521,67 +550,389 @@ end
 
 ## Multi-Session Use Cases
 
-### Group Health Monitor
+### Group Health Monitor Widget
+
+A visual widget showing all party members' health across sessions.
 
 ```lua
--- Create a widget showing all character health
-local widget = createWidget("group-health", "canvas", {
-  width = 200,
-  height = 150
-})
+plugin = {
+  name = "Group Health Monitor",
+  version = "1.0",
+  description = "Visual health bars for all characters"
+}
+
+local widgetId = nil
+
+function init()
+  utilprint("$G[Group Monitor]$W Initializing...")
+
+  -- Create the health display widget
+  widgetId = createWidget({
+    name = "group-health",
+    title = "Party Health",
+    width = 220,
+    height = 200,
+    x = 10,
+    y = 10
+  })
+
+  -- Initial draw
+  updateGroupHealth()
+
+  -- Update on any GMCP vitals change from any session
+  onGlobal("gmcp:Char.Vitals", function(data)
+    updateGroupHealth()
+  end)
+
+  -- Also update on MSDP health changes
+  onMSDPChangeGlobal("HEALTH", function(sessionId, value, oldValue)
+    updateGroupHealth()
+  end)
+
+  showWidget(widgetId)
+end
 
 function updateGroupHealth()
-  clear()
+  clearWidget(widgetId)
+
+  -- Draw background
+  drawRect(0, 0, 220, 200, "#1a1a2e")
+  drawText("Party Health", 10, 20, "bold 14px Arial", "#ffffff")
 
   local allVitals = getAllSessionGMCP("Char.Vitals")
-  local y = 10
+  local y = 40
 
   for sessionId, info in pairs(allVitals) do
     local v = info.data
-    local pct = v.hp / v.maxhp
+    if v and v.hp and v.maxhp then
+      local pct = v.hp / v.maxhp
+      local barWidth = 180
 
-    -- Draw health bar
-    drawRect(10, y, 180, 20, "#333333")
-    drawRect(10, y, 180 * pct, 20, pct > 0.5 and "#00ff00" or pct > 0.25 and "#ffff00" or "#ff0000")
-    drawText(info.name .. ": " .. v.hp, 15, y + 15, "12px Arial", "#ffffff")
+      -- Health bar background
+      drawRect(10, y, barWidth, 25, "#333333")
 
-    y = y + 30
+      -- Health bar fill (color based on %)
+      local barColor = "#22c55e"  -- green
+      if pct < 0.25 then
+        barColor = "#ef4444"  -- red
+      elseif pct < 0.5 then
+        barColor = "#f59e0b"  -- yellow
+      end
+      drawRect(10, y, barWidth * pct, 25, barColor)
+
+      -- Character name and HP text
+      local hpText = info.name .. ": " .. v.hp .. "/" .. v.maxhp
+      drawText(hpText, 15, y + 17, "12px Arial", "#ffffff")
+
+      y = y + 35
+    end
+  end
+
+  -- If no data, show message
+  if y == 40 then
+    drawText("No party members found", 10, 60, "12px Arial", "#888888")
+    drawText("Connect more sessions", 10, 80, "12px Arial", "#666666")
+  end
+end
+```
+
+---
+
+### Multi-Box Follow System
+
+Automatically makes all alt characters follow when the leader moves.
+
+```lua
+plugin = {
+  name = "Auto Follow",
+  version = "1.0",
+  description = "Alts automatically follow the leader"
+}
+
+local isLeader = false
+local leaderName = "Tank"  -- Change to your main character's session name
+
+function init()
+  local currentSession = getSession()
+  isLeader = currentSession and currentSession.name == leaderName
+
+  if isLeader then
+    utilprint("$G[Follow]$W This is the LEADER session")
+    setupLeader()
+  else
+    utilprint("$Y[Follow]$W This is a FOLLOWER session")
+    setupFollower()
   end
 end
 
--- Update on any vitals change
-onMSDPChangeGlobal("HEALTH", function(sessionId, value, oldValue)
-  updateGroupHealth()
-end)
-```
+function setupLeader()
+  -- When leader moves, broadcast to followers
+  onGMCPUpdate("Room.Info", function(data)
+    local myName = getVariable("character_name") or leaderName
 
-### Follow the Leader
+    -- Tell all other sessions to follow
+    broadcast("follow:move", {
+      leader = myName,
+      room = data.num or data.id
+    })
+  end)
 
-```lua
--- Make all other characters follow when you move
-onGMCPUpdate("Room.Info", function(data)
-  if isActiveSession() then
-    -- I moved, tell others to follow
-    local myName = getVariable("characterName")
+  -- Command to make everyone follow
+  addAlias("^#gather$", "", function()
+    local myName = getVariable("character_name") or leaderName
     sendToOthers("follow " .. myName)
-  end
-end)
-```
-
-### Coordinated Combat
-
-```lua
--- Combat coordinator plugin
-function coordinateAttack(target)
-  -- Send attack commands to all
-  sendToSession("Tank", "kill " .. target)
-  sendToSession("DPS1", "backstab " .. target)
-  sendToSession("DPS2", "cast fireball " .. target)
-  sendToSession("Healer", "assist tank")
+    utilprint("$G[Follow]$W Gathering all characters...")
+  end)
 end
 
--- Register command
-registerCommand("attack", function(args)
-  coordinateAttack(args[1])
-end)
+function setupFollower()
+  -- Listen for leader movement
+  onGlobal("follow:move", function(data)
+    local myName = getVariable("character_name")
+    if myName ~= data.leader then
+      Send("follow " .. data.leader)
+    end
+  end)
+
+  -- Auto-follow when entering the game
+  addTrigger("Welcome to", function()
+    addTimer(2000, function()
+      local leaderSession = getSessionByName(leaderName)
+      if leaderSession and leaderSession.connected then
+        Send("follow " .. leaderName)
+        utilprint("$G[Follow]$W Auto-following " .. leaderName)
+      end
+    end, false)
+  end)
+end
+```
+
+---
+
+### Coordinated Combat System
+
+Multi-character combat coordination with role-based commands.
+
+```lua
+plugin = {
+  name = "Combat Coordinator",
+  version = "1.0",
+  description = "Coordinate attacks across multiple characters"
+}
+
+-- Define character roles
+local roles = {
+  Tank = { session = "Tank", commands = { engage = "kill", taunt = "rescue" } },
+  Healer = { session = "Healer", commands = { heal = "cast heal", buff = "cast bless" } },
+  DPS1 = { session = "Rogue", commands = { attack = "backstab", special = "circle" } },
+  DPS2 = { session = "Mage", commands = { attack = "cast fireball", special = "cast meteor" } }
+}
+
+function init()
+  utilprint("$G[Combat]$W Coordinator loaded!")
+  utilprint("$C[Commands]$W #attack <target> | #assist | #retreat | #heal <name>")
+
+  -- Coordinated attack command
+  addAlias("^#attack (.+)$", "", function(line, matches)
+    local target = matches[2]
+    coordinateAttack(target)
+  end)
+
+  -- Everyone assist the tank
+  addAlias("^#assist$", "", function()
+    local tankTarget = getSessionVariable("Tank", "current_target")
+    if tankTarget then
+      coordinateAttack(tankTarget)
+    else
+      utilprint("$R[Combat]$W Tank has no target!")
+    end
+  end)
+
+  -- Emergency retreat
+  addAlias("^#retreat$", "", function()
+    utilprint("$R[Combat]$W RETREAT!")
+    sendToAll("flee")
+    addTimer(1000, function()
+      sendToAll("recall")
+    end, false)
+  end)
+
+  -- Heal a specific character
+  addAlias("^#heal (.+)$", "", function(line, matches)
+    local target = matches[2]
+    sendToSession("Healer", "cast heal " .. target)
+    utilprint("$G[Combat]$W Healer targeting " .. target)
+  end)
+
+  -- Monitor for low health across all sessions
+  onGlobal("gmcp:Char.Vitals", function(data)
+    if data.hp and data.maxhp then
+      local pct = data.hp / data.maxhp
+      if pct < 0.3 then
+        -- Auto-heal when someone gets low
+        local charName = data.__sessionName or "unknown"
+        utilprint("$R[Combat]$W " .. charName .. " health critical! Auto-healing...")
+        sendToSession("Healer", "cast heal " .. charName)
+      end
+    end
+  end)
+end
+
+function coordinateAttack(target)
+  utilprint("$G[Combat]$W Coordinating attack on: " .. target)
+
+  -- Store target for reference
+  setVariable("group_target", target)
+  broadcast("combat:target", { target = target })
+
+  -- Tank engages first
+  sendToSession(roles.Tank.session, roles.Tank.commands.engage .. " " .. target)
+
+  -- DPS waits a moment then attacks
+  addTimer(1500, function()
+    sendToSession(roles.DPS1.session, roles.DPS1.commands.attack .. " " .. target)
+    sendToSession(roles.DPS2.session, roles.DPS2.commands.attack .. " " .. target)
+  end, false)
+
+  -- Healer assists tank
+  sendToSession(roles.Healer.session, "assist " .. roles.Tank.session)
+end
+```
+
+---
+
+### Gold/Loot Sharing System
+
+Track and share gold across all characters.
+
+```lua
+plugin = {
+  name = "Gold Tracker",
+  version = "1.0",
+  description = "Track gold across all characters"
+}
+
+function init()
+  utilprint("$Y[Gold]$W Tracker loaded!")
+
+  -- Track gold gains
+  addTrigger("You receive (%d+) gold", function(line, matches)
+    local gold = tonumber(matches[2])
+    local currentGold = getVariable("total_gold") or 0
+    setVariable("total_gold", currentGold + gold)
+
+    -- Broadcast gold update
+    broadcast("gold:update", {
+      session = getSession().name,
+      gained = gold,
+      total = currentGold + gold
+    })
+  end, true)
+
+  -- Command to see all gold
+  addAlias("^#gold$", "", function()
+    utilprint("$Y[Gold Status]$W")
+
+    local sessions = getAllSessions()
+    local totalGold = 0
+
+    for i, s in ipairs(sessions) do
+      local gold = getSessionVariable(s.name, "total_gold") or 0
+      totalGold = totalGold + gold
+      utilprint("  " .. s.name .. ": $Y" .. gold .. "$W gold")
+    end
+
+    utilprint("  $G───────────────$W")
+    utilprint("  Total: $Y" .. totalGold .. "$W gold")
+  end)
+
+  -- Command to transfer gold
+  addAlias("^#sendgold (%w+) (%d+)$", "", function(line, matches)
+    local target = matches[2]
+    local amount = matches[3]
+
+    -- Find target in same room (you'd need to verify this)
+    Send("give " .. amount .. " gold " .. target)
+    utilprint("$Y[Gold]$W Sending " .. amount .. " gold to " .. target)
+  end)
+end
+```
+
+---
+
+### Session Status Dashboard
+
+A comprehensive status widget showing all session states.
+
+```lua
+plugin = {
+  name = "Session Dashboard",
+  version = "1.0",
+  description = "Overview of all connected sessions"
+}
+
+local widgetId = nil
+
+function init()
+  widgetId = createWidget({
+    name = "session-dashboard",
+    title = "Sessions",
+    width = 250,
+    height = 180,
+    x = 10,
+    y = 220
+  })
+
+  -- Update every 5 seconds
+  addTimer(5000, updateDashboard, true)
+
+  -- Also update on session events
+  onGlobal("session:connected", updateDashboard)
+  onGlobal("session:disconnected", updateDashboard)
+
+  updateDashboard()
+  showWidget(widgetId)
+end
+
+function updateDashboard()
+  clearWidget(widgetId)
+
+  drawRect(0, 0, 250, 180, "#0f172a")
+  drawText("Session Status", 10, 20, "bold 14px Arial", "#ffffff")
+
+  local sessions = getAllSessions()
+  local y = 45
+
+  for i, s in ipairs(sessions) do
+    -- Connection indicator
+    local statusColor = s.connected and "#22c55e" or "#ef4444"
+    drawCircle(20, y, 6, statusColor)
+
+    -- Session name
+    local nameColor = s.active and "#60a5fa" or "#94a3b8"
+    drawText(s.name, 35, y + 4, "13px Arial", nameColor)
+
+    -- Active indicator
+    if s.active then
+      drawText("[ACTIVE]", 180, y + 4, "10px Arial", "#60a5fa")
+    end
+
+    -- Connection info
+    if s.connected then
+      local info = s.host .. ":" .. s.port
+      drawText(info, 35, y + 18, "10px Arial", "#64748b")
+    else
+      drawText("Disconnected", 35, y + 18, "10px Arial", "#ef4444")
+    end
+
+    y = y + 40
+  end
+
+  -- Summary line
+  local connected = 0
+  for _, s in ipairs(sessions) do
+    if s.connected then connected = connected + 1 end
+  end
+  drawText(connected .. "/" .. #sessions .. " connected", 10, 165, "11px Arial", "#64748b")
+end
 ```
