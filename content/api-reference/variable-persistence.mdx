@@ -349,6 +349,308 @@ print("Stats tracker loaded!")
 
 ---
 
+## Plugin Discovery
+
+Find and interact with other plugins in the same session.
+
+### getPluginId
+
+Get this plugin's unique ID.
+
+**API:**
+```lua
+local id = getPluginId()
+```
+
+**Returns:** `string` - The plugin's unique identifier
+
+**Example:**
+```lua
+local myId = getPluginId()
+log("My plugin ID: " .. myId)
+```
+
+---
+
+### getPluginName
+
+Get this plugin's name.
+
+**API:**
+```lua
+local name = getPluginName()
+```
+
+**Returns:** `string` - The plugin's name
+
+---
+
+### getPluginInfo
+
+Get detailed info about this plugin.
+
+**API:**
+```lua
+local info = getPluginInfo()
+```
+
+**Returns:** `table` - `{ id, name, version, author, description }`
+
+---
+
+### getLoadedPlugins
+
+List all currently loaded (enabled) plugins.
+
+**API:**
+```lua
+local plugins = getLoadedPlugins()
+```
+
+**Returns:** `table` - Array of `{ id, name, version, author, enabled }`
+
+**Example:**
+```lua
+local plugins = getLoadedPlugins()
+for i, p in ipairs(plugins) do
+  log(p.name .. " v" .. p.version .. " by " .. p.author)
+end
+```
+
+---
+
+### findPluginByName
+
+Find a plugin by its name.
+
+**API:**
+```lua
+local plugin = findPluginByName(name)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| name | string | Yes | Plugin name to search for (case-insensitive) |
+
+**Returns:** `table` - `{ id, name, version, author }` or `nil` if not found
+
+**Example:**
+```lua
+local combat = findPluginByName("Combat Helper")
+if combat then
+  log("Found Combat Helper: " .. combat.id)
+end
+```
+
+---
+
+## Cross-Plugin Access
+
+Access variables and tables from other plugins in the same session.
+
+### getPluginVariable
+
+Get a variable from another plugin.
+
+**API:**
+```lua
+local value = getPluginVariable(pluginId, varName)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| pluginId | string | Yes | Target plugin's ID |
+| varName | string | Yes | Variable name to retrieve |
+
+**Returns:** The value, or `nil` if not found
+
+**Example:**
+```lua
+-- Find the combat plugin and get its target
+local combat = findPluginByName("Combat Helper")
+if combat then
+  local target = getPluginVariable(combat.id, "current_target")
+  if target then
+    log("Combat target: " .. target)
+  end
+end
+```
+
+---
+
+### getPluginTable
+
+Get a saved table from another plugin.
+
+**API:**
+```lua
+local data = getPluginTable(pluginId, tableName)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| pluginId | string | Yes | Target plugin's ID |
+| tableName | string | Yes | Table name to retrieve |
+
+**Returns:** `table` - The data, or `nil` if not found
+
+**Example:**
+```lua
+-- Get stats from another plugin
+local stats = findPluginByName("Stats Tracker")
+if stats then
+  local playerStats = getPluginTable(stats.id, "player_stats")
+  if playerStats then
+    log("Total kills: " .. playerStats.kills)
+  end
+end
+```
+
+---
+
+## Plugin Broadcast System
+
+Send messages between plugins in the same session.
+
+### broadcastPlugin
+
+Broadcast a message to ALL plugins.
+
+**API:**
+```lua
+broadcastPlugin(message, data)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| message | string | Yes | Message type/name |
+| data | any | No | Additional data to send |
+
+**Example:**
+```lua
+-- Notify all plugins of a state change
+broadcastPlugin("combat_started", { target = "goblin" })
+broadcastPlugin("health_low", { hp = 25, maxHp = 100 })
+```
+
+---
+
+### broadcastToPlugin
+
+Send a message to a specific plugin.
+
+**API:**
+```lua
+broadcastToPlugin(pluginId, message, data)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| pluginId | string | Yes | Target plugin's ID |
+| message | string | Yes | Message type/name |
+| data | any | No | Additional data to send |
+
+**Example:**
+```lua
+-- Request data from a specific plugin
+local healer = findPluginByName("Auto Healer")
+if healer then
+  broadcastToPlugin(healer.id, "request_heal", { priority = "high" })
+end
+```
+
+---
+
+### onPluginBroadcast
+
+Listen for messages from other plugins.
+
+**API:**
+```lua
+onPluginBroadcast(callback)
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| callback | function | Yes | Handler: `function(senderId, message, data)` |
+
+**Example:**
+```lua
+-- Listen for broadcasts from other plugins
+onPluginBroadcast(function(senderId, message, data)
+  if message == "combat_started" then
+    log("Combat started by plugin " .. senderId)
+    -- React to combat starting
+    setVariable("in_combat", true)
+  elseif message == "request_heal" then
+    -- Another plugin is requesting a heal
+    Send("cast heal")
+  end
+end)
+```
+
+---
+
+## Cross-Plugin Communication Example
+
+```lua
+-- Plugin A: Combat Tracker
+plugin = {
+  name = "Combat Tracker",
+  version = "1.0"
+}
+
+function init()
+  -- Track combat state
+  addTrigger("You attack", function()
+    setVariable("in_combat", true)
+    setVariable("combat_target", "enemy")
+
+    -- Notify other plugins
+    broadcastPlugin("combat_started", {
+      target = getVariable("combat_target")
+    })
+  end)
+
+  addTrigger("Combat over", function()
+    setVariable("in_combat", false)
+    broadcastPlugin("combat_ended", {})
+  end)
+end
+```
+
+```lua
+-- Plugin B: Auto Healer (reacts to Plugin A)
+plugin = {
+  name = "Auto Healer",
+  version = "1.0"
+}
+
+function init()
+  -- Listen for combat tracker events
+  onPluginBroadcast(function(senderId, message, data)
+    if message == "combat_started" then
+      log("Combat detected, enabling auto-heal")
+      setVariable("auto_heal_active", true)
+    elseif message == "combat_ended" then
+      log("Combat ended, disabling auto-heal")
+      setVariable("auto_heal_active", false)
+    end
+  end)
+
+  -- Or directly check the combat tracker's state
+  local combat = findPluginByName("Combat Tracker")
+  if combat then
+    local inCombat = getPluginVariable(combat.id, "in_combat")
+    if inCombat then
+      log("Combat already in progress")
+    end
+  end
+end
+```
+
+---
+
 ## Best Practices
 
 ### Variables vs Tables
