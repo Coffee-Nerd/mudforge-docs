@@ -61,15 +61,17 @@ local hp = getVariable("hp")
 local name = getVariable("player_name")
 
 if getVariable("in_combat") then
-  echo("Currently in combat!")
+  print("Currently in combat!")
+  utilprint("$R[Combat] $wIn progress!")
 end
 
 -- Check for existence
 local gold = getVariable("gold")
 if gold then
-  echo("You have " .. gold .. " gold")
+  print("You have " .. gold .. " gold")
+  utilprint("$YGold: $w" .. gold)
 else
-  echo("Gold not tracked yet")
+  print("Gold not tracked yet")
 end
 ```
 
@@ -124,7 +126,7 @@ end
 -- Check total count
 local count = 0
 for _ in pairs(vars) do count = count + 1 end
-echo("Total variables: " .. count)
+print("Total variables: " .. count)
 ```
 
 
@@ -207,9 +209,11 @@ local playerData = {
 }
 
 if saveTable("player_data", playerData) then
-  echo("Player data saved!")
+  print("Player data saved!")
+  utilprint("$G[Save] $wPlayer data saved!")
 else
-  echo("Failed to save player data", "#ff0000")
+  print("Failed to save player data")
+  utilprint("$R[Error] $wFailed to save player data")
 end
 
 -- Save map data
@@ -251,10 +255,11 @@ local data = loadTable(tableName)
 -- Load player data on startup
 local playerData = loadTable("player_data")
 if playerData then
-  echo("Welcome back, " .. playerData.name .. "!")
-  echo("Level " .. playerData.level .. " " .. playerData.class)
+  print("Welcome back, " .. playerData.name .. "!")
+  print("Level " .. playerData.level .. " " .. playerData.class)
+  utilprint("$G[Welcome] $w" .. playerData.name .. " - Level " .. playerData.level)
 else
-  echo("No saved data found. Starting fresh.")
+  print("No saved data found. Starting fresh.")
   playerData = { name = "NewPlayer", level = 1 }
 end
 
@@ -297,7 +302,8 @@ local stats = loadTable("my_plugin_stats") or {
 stats.sessionsPlayed = stats.sessionsPlayed + 1
 saveTable("my_plugin_stats", stats)
 
-echo("Session #" .. stats.sessionsPlayed, "#00ff00")
+print("Session #" .. stats.sessionsPlayed)
+utilprint("$G[Session] $w#" .. stats.sessionsPlayed)
 
 -- Config command
 registerCommand("myconfig", function(args)
@@ -305,24 +311,27 @@ registerCommand("myconfig", function(args)
     if args[2] == "on" then
       config.autoHeal = true
       saveTable("my_plugin_config", config)
-      echo("Auto-heal enabled")
+      print("Auto-heal enabled")
+      utilprint("$G[Config] $wAuto-heal enabled")
     elseif args[2] == "off" then
       config.autoHeal = false
       saveTable("my_plugin_config", config)
-      echo("Auto-heal disabled")
+      print("Auto-heal disabled")
+      utilprint("$Y[Config] $wAuto-heal disabled")
     end
   else
-    echo("Auto-heal: " .. tostring(config.autoHeal))
-    echo("Heal threshold: " .. config.healThreshold .. "%")
+    print("Auto-heal: " .. tostring(config.autoHeal))
+    print("Heal threshold: " .. config.healThreshold .. "%")
   end
 end, "View/change config")
 
 -- Stats command
 registerCommand("mystats", function()
-  echo("Kills: " .. stats.kills)
-  echo("Deaths: " .. stats.deaths)
-  echo("Gold: " .. stats.goldEarned)
-  echo("Sessions: " .. stats.sessionsPlayed)
+  print("Kills: " .. stats.kills)
+  print("Deaths: " .. stats.deaths)
+  print("Gold: " .. stats.goldEarned)
+  print("Sessions: " .. stats.sessionsPlayed)
+  utilprint("$C[Stats] $wKills: " .. stats.kills .. " | Deaths: " .. stats.deaths)
 end, "Show statistics")
 
 -- Track kills
@@ -335,7 +344,8 @@ end)
 addTrigger("You have died", function()
   stats.deaths = stats.deaths + 1
   saveTable("my_plugin_stats", stats)
-  echo("Deaths: " .. stats.deaths, "#ff0000")
+  print("Deaths: " .. stats.deaths)
+  utilprint("$R[Death] $wTotal deaths: " .. stats.deaths)
 end)
 
 -- Track gold
@@ -680,12 +690,14 @@ saveTable("mapper_config", config)
 -- Always check loadTable results
 local data = loadTable("important_data")
 if not data then
-  echo("Warning: Could not load saved data", "#ffff00")
+  print("Warning: Could not load saved data")
+  utilprint("$Y[Warning] $wCould not load saved data")
   data = createDefaultData()
 end
 
 -- Verify saveTable succeeded
 if not saveTable("important_data", data) then
-  echo("Error: Failed to save data!", "#ff0000")
+  print("Error: Failed to save data!")
+  utilprint("$R[Error] $wFailed to save data!")
 end
 ```
