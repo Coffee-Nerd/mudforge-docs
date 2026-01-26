@@ -9,7 +9,8 @@ The simplest possible plugin (no canvas):
 ```lua
 print("Echo Plugin loading...")
 
-echo("Hello from Echo Plugin!")
+print("Hello from Echo Plugin!")
+utilprint("$GPlugin: $wReady!")  -- Green "Plugin:" with white text
 
 addAlias("^/greet (.+)$", function(match, name)
   send("say Hello, " .. name .. "!")
@@ -60,11 +61,13 @@ local kills = 0
 
 addTrigger("You have slain (.+)!", function(match, target)
   kills = kills + 1
-  echo("[Combat] Killed: " .. target .. " (Total: " .. kills .. ")")
+  print("[Combat] Killed: " .. target .. " (Total: " .. kills .. ")")
+  utilprint("$R[Kill] $w" .. target)  -- Red "[Kill]" with white target name
 end, true)
 
 addAlias("^/kills$", function()
-  echo("Total kills this session: " .. kills)
+  print("Total kills this session: " .. kills)
+  utilprint("$YKills: $w" .. kills)  -- Yellow "Kills:" with white count
 end, true)
 
 print("Combat Logger loaded!")
@@ -87,12 +90,14 @@ end, true)
 
 addTrigger("You are wounded!", function()
   isHurt = true
-  echo("[Auto-Heal] Activating...")
+  print("[Auto-Heal] Activating...")
+  utilprint("$Y[Heal] $wActivating...")  -- Yellow "[Heal]"
 end, false)
 
 addTrigger("You are fully healed.", function()
   isHurt = false
-  echo("[Auto-Heal] Complete.")
+  print("[Auto-Heal] Complete.")
+  utilprint("$G[Heal] $wComplete!")  -- Green "[Heal]"
 end, false)
 
 print("Auto-Heal loaded!")
@@ -107,11 +112,12 @@ print("Room Tracker loading...")
 
 local room = getCurrentRoom()
 if room then
-  echo("Current room: " .. (room.name or "Unknown"))
+  print("Current room: " .. (room.name or "Unknown"))
 end
 
 onGMCPUpdate("Room.Info", function(data)
-  echo("Moved to: " .. (data.name or "Unknown room"))
+  print("Moved to: " .. (data.name or "Unknown room"))
+  utilprint("$C[Room] $w" .. (data.name or "Unknown"))  -- Cyan "[Room]"
 end)
 
 print("Room Tracker loaded!")
@@ -126,12 +132,14 @@ print("Session Coordinator loading...")
 
 addAlias("^/all (.+)$", function(match, cmd)
   sendToAll(cmd)
-  echo("Sent to all: " .. cmd)
+  print("Sent to all: " .. cmd)
+  utilprint("$M[All] $w" .. cmd)  -- Magenta "[All]"
 end, true)
 
 addAlias("^/to (%w+) (.+)$", function(match, session, cmd)
   sendToSession(session, cmd)
-  echo("Sent to " .. session .. ": " .. cmd)
+  print("Sent to " .. session .. ": " .. cmd)
+  utilprint("$C[" .. session .. "] $w" .. cmd)  -- Cyan session name
 end, true)
 
 print("Session Coordinator loaded!")
