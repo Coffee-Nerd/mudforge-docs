@@ -59,13 +59,15 @@ end)
 addTrigger("(\\w+) tells you '(.+)'", function(line, matches)
   local sender = matches[1]
   local message = matches[2]
-  echo("Tell from " .. sender .. ": " .. message, "#00ff00")
+  print("Tell from " .. sender .. ": " .. message)
+  utilprint("$G[Tell] $C" .. sender .. "$w: " .. message)  -- Green "[Tell]", Cyan sender
 end, { type = "regex" })
 
 -- One-shot trigger (removes itself after firing)
 addTrigger("Welcome to the game", function()
   send("look")
-  echo("Auto-looked on login!")
+  print("Auto-looked on login!")
+  utilprint("$Y[Login] $wAuto-look triggered")
 end, { oneShot = true })
 
 -- Priority trigger (fires before others)
@@ -77,7 +79,8 @@ end, { priority = 10 })
 addTrigger("* gives you *", function(line, matches)
   local giver = matches[1]
   local item = matches[2]
-  echo("Received " .. item .. " from " .. giver, "#00ff00")
+  print("Received " .. item .. " from " .. giver)
+  utilprint("$G[Received] $w" .. item .. " from $C" .. giver)  -- Cyan giver name
 end, { type = "wildcard" })
 
 -- Regex HP tracking
@@ -247,7 +250,8 @@ addAlias("^go (.+)$", "speedwalk $1")  -- "go tavern" becomes "speedwalk tavern"
 addAlias("^heal (.+)$", "", function(matches)
   local target = matches[1]
   send("cast 'cure light wounds' " .. target)
-  echo("Healing " .. target .. "...", "#00ff00")
+  print("Healing " .. target .. "...")
+  utilprint("$G[Heal] $wCasting on " .. target)
 end)
 ```
 
@@ -322,13 +326,15 @@ local timerId = addTimer(interval, callback, repeating?)
 ```lua
 -- One-shot timer (fires once after 5 seconds)
 addTimer(5000, function()
-  echo("5 seconds have passed!")
+  print("5 seconds have passed!")
+  utilprint("$Y[Timer] $w5 seconds elapsed")
 end)
 
 -- Repeating timer (fires every 10 seconds)
 local autoSaveTimer = addTimer(10000, function()
   send("save")
-  echo("Auto-saved!")
+  print("Auto-saved!")
+  utilprint("$G[Save] $wAuto-saved!")
 end, true)
 
 -- Repeating timer for status updates (every minute)
@@ -417,7 +423,8 @@ local timerId = setTimeout(callback, delay)
 ```lua
 -- Execute after 2 seconds
 setTimeout(function()
-  echo("Timer fired!")
+  print("Timer fired!")
+  utilprint("$Y[Timeout] $wTimer fired!")
 end, 2000)
 
 -- Store ID for potential cancellation
@@ -479,7 +486,8 @@ end)
 
 -- Combat triggers
 local function attackHandler(line)
-  echo("Under attack!", "#ff0000")
+  print("Under attack!")
+  utilprint("$R[Combat] $wUnder attack!")
 end
 
 addTrigger("attacks you", attackHandler, { group = "combat" })
@@ -502,7 +510,8 @@ end)
 -- Auto-save every 5 minutes
 addTimer(300000, function()
   send("save")
-  echo("Auto-saved!", "#888888")
+  print("Auto-saved!")
+  utilprint("$w[Save] Auto-saved")
 end, true)
 
 -- Status check every minute
